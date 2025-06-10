@@ -1,0 +1,36 @@
+{
+  "name": "cross-chain-messaging-prototype",
+  "version": "1.0.0",
+  "description": "A secure and gas-efficient cross-chain messaging prototype for Ethereum-compatible environments",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "deploy": "hardhat run scripts/deploy.js",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
+    "deploy:bsc": "hardhat run scripts/deploy.js --network bsc",
+    "deploy:arbitrum": "hardhat run scripts/deploy.js --network arbitrum"
+  },
+  "keywords": [
+    "ethereum",
+    "cross-chain",
+    "messaging",
+    "solidity",
+    "defi"
+  ],
+  "author": "Ethereum Tech Task",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/test-helpers": "^0.5.16",
+    "hardhat": "^2.19.0",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.5"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "ethers": "^6.0.0"
+  }
+} 
