@@ -212,6 +212,60 @@
             color: #0c5460;
         }
 
+        .status-indicator {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .status-indicator.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .status-indicator.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .status-indicator.loading {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            display: block;
+            margin: 10px 0;
+            color: #495057;
+        }
+
+        h3 {
+            color: #495057;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        ul li {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -235,22 +289,69 @@
         </div>
 
         <div class="main-content">
-            <div class="alert alert-warning">
-                <strong>⚠️ Note:</strong> This interface works with local Hardhat network. Make sure your contracts are deployed and MetaMask is connected to localhost:8545.
+            <div class="section">
+                <h2>🚀 Quick Setup Guide</h2>
+                <div class="alert alert-info">
+                    <strong>📋 Complete Setup Process:</strong> Follow these steps to get everything running!
+                </div>
+                
+                <div class="grid">
+                    <div>
+                        <h3>Step 1: Start Hardhat Node</h3>
+                        <p>Run this command in your terminal:</p>
+                        <code>npx hardhat node</code>
+                        <button class="btn btn-secondary" onclick="checkNodeStatus()">Check Node Status</button>
+                        <div id="nodeStatusIndicator" class="status-indicator"></div>
+                    </div>
+                    
+                    <div>
+                        <h3>Step 2: Deploy Contracts</h3>
+                        <p>Run this command in another terminal:</p>
+                        <code>npx hardhat run scripts/deploy.js --network localhost</code>
+                        <button class="btn btn-secondary" onclick="tryFetchContractAddresses()">Auto-Detect Addresses</button>
+                        <div id="deployStatusIndicator" class="status-indicator"></div>
+                    </div>
+                </div>
+                
+                <div class="grid">
+                    <div>
+                        <h3>Step 3: Connect MetaMask</h3>
+                        <p>Add Hardhat network to MetaMask:</p>
+                        <ul>
+                            <li><strong>Network Name:</strong> Hardhat</li>
+                            <li><strong>RPC URL:</strong> http://localhost:8545</li>
+                            <li><strong>Chain ID:</strong> 31337</li>
+                            <li><strong>Currency:</strong> ETH</li>
+                        </ul>
+                        <button class="btn" onclick="addHardhatNetwork()">Add Hardhat Network</button>
+                    </div>
+                    
+                    <div>
+                        <h3>Step 4: Import Test Account</h3>
+                        <p>Import Hardhat test account #0:</p>
+                        <code>0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80</code>
+                        <button class="btn btn-secondary" onclick="copyTestAccount()">Copy Private Key</button>
+                        <div id="accountCopyIndicator" class="status-indicator"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="status-bar">
                 <div class="status-item">
-                    <span class="status-label">Wallet Status:</span>
+                    <span class="status-label">🔗 Hardhat Node:</span>
+                    <span class="status-value" id="nodeStatus">Unknown</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">👛 Wallet:</span>
                     <span class="status-value" id="walletStatus">Not Connected</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Network:</span>
+                    <span class="status-label">🌐 Network:</span>
                     <span class="status-value" id="networkStatus">Unknown</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Contract Address:</span>
-                    <span class="status-value" id="contractAddress">Not Set</span>
+                    <span class="status-label">📜 Contracts:</span>
+                    <span class="status-value" id="contractStatus">Not Loaded</span>
                 </div>
             </div>
 
@@ -523,10 +624,17 @@
                     
                     const networkId = await web3.eth.net.getId();
                     
-                    document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
-                    document.getElementById('networkStatus').textContent = `Chain ID: ${networkId}`;
-                    
-                    logMessage('Wallet connected successfully', 'success');
+                                    document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
+                document.getElementById('walletStatus').style.color = '#28a745';
+                document.getElementById('networkStatus').textContent = `Chain ID: ${networkId}`;
+                
+                if (networkId == 31337) {
+                    document.getElementById('networkStatus').style.color = '#28a745';
+                } else {
+                    document.getElementById('networkStatus').style.color = '#ffc107';
+                }
+                
+                logMessage('Wallet connected successfully', 'success');
                 } else {
                     logMessage('MetaMask not detected. Please install MetaMask.', 'error');
                 }
@@ -548,7 +656,8 @@
                 messengerContract = new web3.eth.Contract(MESSENGER_ABI, messengerAddress);
                 testTargetContract = new web3.eth.Contract(TEST_TARGET_ABI, testTargetAddress);
                 
-                document.getElementById('contractAddress').textContent = `${messengerAddress.substring(0, 6)}...${messengerAddress.substring(38)}`;
+                document.getElementById('contractStatus').textContent = 'Loaded';
+                document.getElementById('contractStatus').style.color = '#28a745';
                 
                 logMessage('Contracts loaded successfully', 'success');
                 await refreshState();
@@ -788,6 +897,166 @@
 
         // Initialize form
         updateMessageForm();
+
+        // Auto-check node status on page load
+        checkNodeStatus();
+
+        // Helper functions for automation
+        async function checkNodeStatus() {
+            const indicator = document.getElementById('nodeStatusIndicator');
+            const statusElement = document.getElementById('nodeStatus');
+            
+            try {
+                indicator.className = 'status-indicator loading';
+                indicator.textContent = 'Checking...';
+                
+                // Try to connect to localhost:8545
+                const response = await fetch('http://localhost:8545', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_chainId',
+                        params: [],
+                        id: 1
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.result === '0x7a69') { // 31337 in hex
+                        indicator.className = 'status-indicator success';
+                        indicator.textContent = '✅ Hardhat node is running!';
+                        statusElement.textContent = 'Running';
+                        statusElement.style.color = '#28a745';
+                        
+                        // Auto-try to fetch contract addresses
+                        setTimeout(() => tryFetchContractAddresses(), 1000);
+                    } else {
+                        throw new Error('Wrong network');
+                    }
+                } else {
+                    throw new Error('Connection failed');
+                }
+            } catch (error) {
+                indicator.className = 'status-indicator error';
+                indicator.textContent = '❌ Hardhat node not running. Run: npx hardhat node';
+                statusElement.textContent = 'Not Running';
+                statusElement.style.color = '#dc3545';
+            }
+        }
+
+        async function tryFetchContractAddresses() {
+            const indicator = document.getElementById('deployStatusIndicator');
+            
+            try {
+                indicator.className = 'status-indicator loading';
+                indicator.textContent = 'Checking for deployed contracts...';
+                
+                // Common deployment addresses (Hardhat deploys to these usually)
+                const commonAddresses = [
+                    '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+                    '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+                    '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+                    '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
+                ];
+                
+                const tempWeb3 = new Web3('http://localhost:8545');
+                let messengerAddr = null;
+                let testTargetAddr = null;
+                
+                // Check each address to see what's deployed
+                for (const addr of commonAddresses) {
+                    try {
+                        const code = await tempWeb3.eth.getCode(addr);
+                        if (code !== '0x') {
+                            // Try to determine which contract this is
+                            const contract = new tempWeb3.eth.Contract(TEST_TARGET_ABI, addr);
+                            try {
+                                await contract.methods.counter().call();
+                                testTargetAddr = addr;
+                                logMessage(`Found TestTarget at: ${addr}`, 'success');
+                            } catch {
+                                // Probably the messenger contract
+                                messengerAddr = addr;
+                                logMessage(`Found CrossChainMessenger at: ${addr}`, 'success');
+                            }
+                        }
+                    } catch (e) {
+                        // Continue checking other addresses
+                    }
+                }
+                
+                if (messengerAddr && testTargetAddr) {
+                    document.getElementById('messengerAddress').value = messengerAddr;
+                    document.getElementById('testTargetAddress').value = testTargetAddr;
+                    
+                    indicator.className = 'status-indicator success';
+                    indicator.textContent = '✅ Contract addresses auto-detected!';
+                    
+                    logMessage('Contract addresses auto-populated!', 'success');
+                    logMessage(`CrossChainMessenger: ${messengerAddr}`, 'info');
+                    logMessage(`TestTarget: ${testTargetAddr}`, 'info');
+                    
+                    // Auto-load contracts
+                    setTimeout(() => loadContracts(), 1000);
+                    
+                } else {
+                    indicator.className = 'status-indicator error';
+                    indicator.textContent = '❌ Contracts not found. Please deploy them first.';
+                }
+                
+            } catch (error) {
+                indicator.className = 'status-indicator error';
+                indicator.textContent = '❌ Error checking contracts: ' + error.message;
+            }
+        }
+
+        async function addHardhatNetwork() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x7a69', // 31337 in hex
+                            chainName: 'Hardhat Local',
+                            nativeCurrency: {
+                                name: 'Ethereum',
+                                symbol: 'ETH',
+                                decimals: 18
+                            },
+                            rpcUrls: ['http://localhost:8545'],
+                            blockExplorerUrls: null
+                        }]
+                    });
+                    logMessage('✅ Hardhat network added to MetaMask!', 'success');
+                } else {
+                    logMessage('❌ MetaMask not detected', 'error');
+                }
+            } catch (error) {
+                logMessage(`Error adding network: ${error.message}`, 'error');
+            }
+        }
+
+        async function copyTestAccount() {
+            const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+            const indicator = document.getElementById('accountCopyIndicator');
+            
+            try {
+                await navigator.clipboard.writeText(privateKey);
+                indicator.className = 'status-indicator success';
+                indicator.textContent = '✅ Private key copied to clipboard!';
+                logMessage('Test account private key copied to clipboard', 'success');
+                
+                setTimeout(() => {
+                    indicator.textContent = '';
+                    indicator.className = '';
+                }, 3000);
+            } catch (error) {
+                indicator.className = 'status-indicator error';
+                indicator.textContent = '❌ Failed to copy. Copy manually from above.';
+            }
+        }
     </script>
 </body>
 </html> 
