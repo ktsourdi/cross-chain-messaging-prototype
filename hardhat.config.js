@@ -22,17 +22,10 @@ module.exports = {
       url: process.env.SEPOLIA_URL || "",
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    polygon: {
-      url: process.env.POLYGON_URL || "https://polygon-rpc.com",
+    bscTestnet: {
+      url: process.env.BSC_TESTNET_URL || "https://data-seed-prebsc-1-s1.binance.org:8545",
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    bsc: {
-      url: process.env.BSC_URL || "https://bsc-dataseed1.binance.org",
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    arbitrum: {
-      url: process.env.ARBITRUM_URL || "https://arb1.arbitrum.io/rpc",
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      chainId: 97,
     },
   },
   gasReporter: {

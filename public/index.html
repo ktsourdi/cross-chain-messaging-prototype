@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cross-Chain Messaging Prototype</title>
+    <title>Sepolia → BSC Cross-Chain Messaging</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.10.4/dist/web3.min.js"></script>
     <style>
         * {
@@ -325,6 +325,88 @@
             color: white;
         }
 
+        /* Tabs Styling */
+        .tabs {
+            margin: 20px 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: 2px solid #e0e0e0;
+            background: #f8f9fa;
+            color: #495057;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* State Display */
+        .state-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .state-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .state-item {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .state-item label {
+            display: block;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .state-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -343,153 +425,77 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌉 Cross-Chain Messaging</h1>
-            <p>Test and interact with the cross-chain messaging prototype</p>
+            <h1>🌉 Sepolia → BSC Cross-Chain Messaging</h1>
+            <p>Live cross-chain message relay between Sepolia Testnet and BSC Testnet</p>
         </div>
 
         <div class="main-content">
-            <div class="section">
-                <h2>🚀 Quick Setup Guide</h2>
-                <div class="alert alert-info">
-                    <strong>📋 Complete Setup Process:</strong> Follow these steps to get everything running!
-                </div>
-                
-                <div class="grid">
+            <div class="section" style="text-align: center;">
+                <h2>🚀 Quick Setup</h2>
+                <div class="grid" style="gap: 40px; max-width: 600px; margin: 0 auto;">
                     <div>
-                        <h3>Step 1: Start Hardhat Node</h3>
-                        <p>Run this command in your terminal:</p>
-                        <code>npx hardhat node</code>
-                        <button class="btn btn-secondary" onclick="checkNodeStatus()">Check Node Status</button>
-                        <div id="nodeStatusIndicator" class="status-indicator"></div>
+                        <h3>Add Networks</h3>
+                        <button class="btn btn-secondary" onclick="addSepoliaNetwork()">Add Sepolia</button>
+                        <button class="btn btn-secondary" onclick="addBSCTestnetNetwork()">Add BSC</button>
                     </div>
                     
                     <div>
-                        <h3>Step 2: Deploy Contracts</h3>
-                        <p>Run this command in another terminal:</p>
-                        <code>npx hardhat run scripts/deploy.js --network localhost</code>
-                        <button class="btn btn-secondary" onclick="tryFetchContractAddresses()">Auto-Detect Addresses</button>
-                        <div id="deployStatusIndicator" class="status-indicator"></div>
-                    </div>
-                </div>
-                
-                <div class="grid">
-                    <div>
-                        <h3>Step 3: Connect MetaMask</h3>
-                        <p>Add Hardhat network to MetaMask:</p>
-                        <ul>
-                            <li><strong>Network Name:</strong> Hardhat</li>
-                            <li><strong>RPC URL:</strong> http://localhost:8545</li>
-                            <li><strong>Chain ID:</strong> 31337</li>
-                            <li><strong>Currency:</strong> ETH</li>
-                        </ul>
-                        <button class="btn" onclick="addHardhatNetwork()">Add Hardhat Network</button>
-                        <button class="btn btn-secondary" onclick="addSepoliaNetwork()">Add Sepolia Network</button>
-                    </div>
-                    
-                    <div>
-                        <h3>Step 4: Import Test Account</h3>
-                        <p>Import Hardhat test account #0:</p>
-                        <code>0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80</code>
-                        <button class="btn btn-secondary" onclick="copyTestAccount()">Copy Private Key</button>
-                        <div id="accountCopyIndicator" class="status-indicator"></div>
+                        <h3>Get Test ETH</h3>
+                        <a href="https://sepoliafaucet.com/" target="_blank" class="btn">Sepolia Faucet</a>
                     </div>
                 </div>
             </div>
 
             <div class="status-bar">
                 <div class="status-item">
-                    <span class="status-label">🔗 Hardhat Node:</span>
-                    <span class="status-value" id="nodeStatus">Unknown</span>
-                </div>
-                <div class="status-item">
                     <span class="status-label">👛 Wallet:</span>
                     <span class="status-value" id="walletStatus">Not Connected</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">🌐 Network:</span>
-                    <span class="status-value" id="networkStatus">Unknown</span>
+                    <span class="status-value" id="networkStatus">Connect Wallet</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">📜 Contracts:</span>
-                    <span class="status-value" id="contractStatus">Not Loaded</span>
+                    <span class="status-label">🔄 Relayer:</span>
+                    <span class="status-value" style="color: #28a745;">Active</span>
                 </div>
             </div>
 
-            <div class="grid">
-                <div class="section">
-                    <h2>🔧 Setup</h2>
-                    
-                    <div class="form-group">
-                        <label for="messengerAddress">CrossChainMessenger Address:</label>
-                        <input type="text" id="messengerAddress" placeholder="0x..." />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="testTargetAddress">TestTarget Address:</label>
-                        <input type="text" id="testTargetAddress" placeholder="0x..." />
-                    </div>
-                    
-                    <button class="btn" onclick="connectWallet()">Connect Wallet</button>
-                    <button class="btn btn-secondary" onclick="loadContracts()">Load Contracts</button>
-                </div>
-
-                <div class="section">
-                    <h2>📊 Contract State</h2>
-                    
-                    <div class="form-group">
-                        <label>TestTarget Counter:</label>
-                        <input type="text" id="counterValue" readonly />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Stored Value:</label>
-                        <input type="text" id="storedValue" readonly />
-                    </div>
-                    
-                    <button class="btn btn-secondary" onclick="refreshState()">Refresh State</button>
-                </div>
+            <div class="section" style="text-align: center; padding: 20px;">
+                <h2>🌉 Connect Wallet to Start</h2>
+                <p>Connect your wallet to send cross-chain messages</p>
+                <button class="btn" onclick="connectWallet()" style="font-size: 1.2rem; padding: 15px 30px;">Connect Wallet</button>
             </div>
 
             <div class="section">
                 <h2>📨 Cross-Chain Message Hub</h2>
                 
                 <div class="alert alert-info">
-                    <strong>🌉 Cross-Chain Demo:</strong> This simulates sending messages between different blockchain networks. In production, relayers would process messages across real chains.
+                    <strong>🌉 Live Cross-Chain Messaging:</strong> Send real messages from Sepolia Testnet to BSC Testnet. Our relayer automatically processes and delivers messages between chains.
                 </div>
                 
                 <div class="grid">
                     <div>
                         <div class="form-group">
-                            <label for="sourceChain">Source Chain (Current):</label>
-                            <select id="sourceChain">
-                                <option value="31337">🏠 Hardhat Localhost</option>
-                                <option value="1">🔷 Ethereum Mainnet</option>
-                                <option value="137">🟣 Polygon</option>
-                                <option value="56">🟡 BSC</option>
-                                <option value="42161">🔵 Arbitrum</option>
-                                <option value="11155111">🧪 Sepolia Testnet</option>
-                            </select>
+                            <label>Source Chain:</label>
+                            <div style="padding: 12px; background: #e3f2fd; border-radius: 8px; border: 2px solid #2196f3;">
+                                🧪 <strong>Sepolia Testnet</strong> (Chain ID: 11155111)
+                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="targetChain">Target Chain (Destination):</label>
-                            <select id="targetChain">
-                                <option value="137">🟣 Polygon</option>
-                                <option value="31337">🏠 Hardhat Localhost</option>
-                                <option value="1">🔷 Ethereum Mainnet</option>
-                                <option value="56">🟡 BSC</option>
-                                <option value="42161">🔵 Arbitrum</option>
-                                <option value="11155111">🧪 Sepolia Testnet</option>
-                            </select>
+                            <label>Target Chain:</label>
+                            <div style="padding: 12px; background: #fff8e1; border-radius: 8px; border: 2px solid #ff9800;">
+                                🟡 <strong>BSC Testnet</strong> (Chain ID: 97)
+                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="messageType">Message Type:</label>
-                            <select id="messageType" onchange="updateMessageForm()">
-                                <option value="setCounter">Set Counter</option>
-                                <option value="incrementCounter">Increment Counter</option>
-                                <option value="storeValue">Store Value</option>
-                                <option value="customCall">Custom Contract Call</option>
+                            <label for="messageType">Action:</label>
+                            <select id="messageType" onchange="updateMessageForm()" style="font-size: 1.1rem;">
+                                <option value="setCounter">📝 Set Counter Value</option>
+                                <option value="incrementCounter">➕ Increment Counter</option>
+                                <option value="storeValue">💾 Store Data</option>
                             </select>
                         </div>
                     </div>
@@ -497,77 +503,92 @@
                     <div>
                         <div class="form-group" id="valueInput">
                             <label for="messageValue">Value:</label>
-                            <input type="number" id="messageValue" placeholder="Enter value" />
-                        </div>
-                        
-                        <div class="form-group" id="customCallInput" style="display: none;">
-                            <label for="customCallData">Custom Call Data:</label>
-                            <input type="text" id="customCallData" placeholder="0x..." />
+                            <input type="number" id="messageValue" placeholder="Enter value" style="font-size: 1.1rem; padding: 15px;" />
                         </div>
                         
                         <div class="form-group">
-                            <label for="gasLimit">Gas Limit:</label>
-                            <input type="number" id="gasLimit" value="200000" />
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Estimated Cost:</label>
-                            <input type="text" id="estimatedCost" readonly placeholder="~$0.50" />
+                            <label>Bridge Fee:</label>
+                            <div style="padding: 12px; background: #e8f5e8; border-radius: 8px; color: #2d5d31; font-weight: bold;">
+                                ✅ FREE (Testnet)
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="grid">
-                    <button class="btn btn-success" onclick="sendCrossChainMessage()">🚀 Send Cross-Chain Message</button>
-                    <button class="btn btn-secondary" onclick="simulateFullWorkflow()">🎭 Simulate Full Workflow</button>
-                    <button class="btn" onclick="sendLocalMessage()">📍 Send Local Message</button>
+                <div style="text-align: center;">
+                    <button class="btn btn-success" onclick="sendCrossChainMessage()" style="font-size: 1.2rem; padding: 15px 40px;">🚀 Send Message</button>
                 </div>
             </div>
 
             <div class="section">
-                <h2>🔄 Cross-Chain Message Status</h2>
+                <h2>📊 Contract State</h2>
+                
+                <div class="tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" onclick="showTab('sepolia')">🧪 Sepolia Testnet</button>
+                        <button class="tab-button" onclick="showTab('bsc')">🟡 BSC Testnet</button>
+                    </div>
+                    
+                    <div id="sepolia-tab" class="tab-content active">
+                        <div class="state-card">
+                            <h3>📤 Source Chain State</h3>
+                            <div class="state-grid">
+                                <div class="state-item">
+                                    <label>Counter Value:</label>
+                                    <div class="state-value" id="sepoliaCounter">-</div>
+                                </div>
+                                <div class="state-item">
+                                    <label>Stored Value:</label>
+                                    <div class="state-value" id="sepoliaStored">-</div>
+                                </div>
+                                <div class="state-item">
+                                    <label>Messages Sent:</label>
+                                    <div class="state-value" id="sepoliaSent">0</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="refreshSepoliaState()">🔄 Refresh Sepolia</button>
+                        </div>
+                    </div>
+                    
+                    <div id="bsc-tab" class="tab-content">
+                        <div class="state-card">
+                            <h3>📥 Target Chain State</h3>
+                            <div class="state-grid">
+                                <div class="state-item">
+                                    <label>Counter Value:</label>
+                                    <div class="state-value" id="bscCounter">-</div>
+                                </div>
+                                <div class="state-item">
+                                    <label>Stored Value:</label>
+                                    <div class="state-value" id="bscStored">-</div>
+                                </div>
+                                <div class="state-item">
+                                    <label>Messages Received:</label>
+                                    <div class="state-value" id="bscReceived">0</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="refreshBSCState()">🔄 Refresh BSC</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔄 Recent Messages</h2>
                 
                 <div class="grid">
                     <div>
-                        <h3>📤 Outgoing Messages</h3>
+                        <h3>📤 Outgoing</h3>
                         <div id="outgoingMessages" class="message-list">
                             <div class="message-item">No messages sent yet</div>
                         </div>
                     </div>
                     
                     <div>
-                        <h3>📥 Incoming Messages</h3>
+                        <h3>📥 Processed</h3>
                         <div id="incomingMessages" class="message-list">
-                            <div class="message-item">No messages received yet</div>
+                            <div class="message-item">Waiting for messages...</div>
                         </div>
-                    </div>
-                </div>
-                
-                <button class="btn btn-secondary" onclick="refreshMessageStatus()">🔄 Refresh Status</button>
-            </div>
-
-            <div class="section">
-                <h2>🔐 Admin Functions</h2>
-                
-                <div class="grid">
-                    <div>
-                        <div class="form-group">
-                            <label for="relayerAddress">Relayer Address:</label>
-                            <input type="text" id="relayerAddress" placeholder="0x..." />
-                        </div>
-                        
-                        <button class="btn" onclick="addRelayer()">Add Relayer</button>
-                        <button class="btn btn-danger" onclick="removeRelayer()">Remove Relayer</button>
-                    </div>
-                    
-                    <div>
-                        <div class="form-group">
-                            <label for="chainId">Chain ID:</label>
-                            <input type="number" id="chainId" placeholder="1, 137, 56..." />
-                        </div>
-                        
-                        <button class="btn" onclick="enableChain()">Enable Chain</button>
-                        <button class="btn btn-danger" onclick="disableChain()">Disable Chain</button>
                     </div>
                 </div>
             </div>
@@ -587,6 +608,7 @@
         let web3;
         let account;
         let messengerContract;
+        let senderContract;
         let testTargetContract;
 
         const MESSENGER_ABI = [
@@ -689,6 +711,55 @@
             }
         ];
 
+        const SENDER_ABI = [
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "targetChainId", "type": "uint256"},
+                    {"internalType": "address", "name": "target", "type": "address"},
+                    {"internalType": "bytes", "name": "payload", "type": "bytes"}
+                ],
+                "name": "sendMessage",
+                "outputs": [{"internalType": "uint256", "name": "messageId", "type": "uint256"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "chainId", "type": "uint256"}],
+                "name": "enableChain",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "chainId", "type": "uint256"}],
+                "name": "disableChain",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "name": "enabledChains",
+                "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "messageId", "type": "uint256"},
+                    {"indexed": true, "internalType": "uint256", "name": "targetChainId", "type": "uint256"},
+                    {"indexed": true, "internalType": "address", "name": "sender", "type": "address"},
+                    {"indexed": false, "internalType": "address", "name": "target", "type": "address"},
+                    {"indexed": false, "internalType": "bytes", "name": "payload", "type": "bytes"},
+                    {"indexed": false, "internalType": "uint256", "name": "nonce", "type": "uint256"},
+                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                ],
+                "name": "MessageSent",
+                "type": "event"
+            }
+        ];
+
         const TEST_TARGET_ABI = [
             {
                 "inputs": [{"internalType": "uint256","name": "_counter","type": "uint256"}],
@@ -727,6 +798,19 @@
             }
         ];
 
+        // Contract Addresses
+        const SEPOLIA_ADDRESSES = {
+            crossChainMessageSender: '0x7E998120D1A91BA1488FCac0e7B5f055827b5873',
+            crossChainMessenger: '0x4101eF79E648226F2717228C54846bD5c7DF1B0d',
+            testTarget: '0xD8a4ef6f66235338bA19b12e1034fdC20fD9d6dC'
+        };
+
+        const BSC_ADDRESSES = {
+            crossChainMessageSender: '0x5a5a2d0b7899A5Bef0506B10F001685B28E7F8c9',
+            crossChainMessenger: '0x86304b56857fB2DC816719557b8F62DDb716A74D',
+            testTarget: '0x86304b56857fB2DC816719557b8F62DDb716A74D'
+        };
+
         async function connectWallet() {
             try {
                 if (typeof window.ethereum !== 'undefined') {
@@ -736,17 +820,26 @@
                     
                     const networkId = await web3.eth.net.getId();
                     
-                                    document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
-                document.getElementById('walletStatus').style.color = '#28a745';
-                document.getElementById('networkStatus').textContent = `Chain ID: ${networkId}`;
-                
-                if (networkId == 31337) {
-                    document.getElementById('networkStatus').style.color = '#28a745';
-                } else {
-                    document.getElementById('networkStatus').style.color = '#ffc107';
-                }
-                
-                logMessage('Wallet connected successfully', 'success');
+                    document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
+                    document.getElementById('walletStatus').style.color = '#28a745';
+                    
+                    // Auto-detect network and load contracts
+                    if (networkId == 11155111) {
+                        document.getElementById('networkStatus').textContent = 'Sepolia Testnet';
+                        document.getElementById('networkStatus').style.color = '#28a745';
+                        await autoLoadContracts('sepolia');
+                    } else if (networkId == 97) {
+                        document.getElementById('networkStatus').textContent = 'BSC Testnet';
+                        document.getElementById('networkStatus').style.color = '#28a745';
+                        await autoLoadContracts('bsc');
+                    } else {
+                        document.getElementById('networkStatus').textContent = `Unsupported (${networkId})`;
+                        document.getElementById('networkStatus').style.color = '#dc3545';
+                        logMessage('Please switch to Sepolia Testnet to send messages', 'error');
+                        return;
+                    }
+                    
+                    logMessage('Wallet connected successfully', 'success');
                 } else {
                     logMessage('MetaMask not detected. Please install MetaMask.', 'error');
                 }
@@ -755,24 +848,32 @@
             }
         }
 
-        async function loadContracts() {
+        async function autoLoadContracts(network) {
             try {
-                const messengerAddress = document.getElementById('messengerAddress').value;
-                const testTargetAddress = document.getElementById('testTargetAddress').value;
+                let addresses;
                 
-                if (!messengerAddress || !testTargetAddress) {
-                    logMessage('Please enter both contract addresses', 'error');
+                if (network === 'sepolia') {
+                    addresses = SEPOLIA_ADDRESSES;
+                    logMessage('Loading Sepolia contracts...', 'info');
+                } else if (network === 'bsc') {
+                    addresses = BSC_ADDRESSES;
+                    logMessage('Loading BSC contracts...', 'info');
+                } else {
+                    logMessage('Unsupported network', 'error');
                     return;
                 }
                 
-                messengerContract = new web3.eth.Contract(MESSENGER_ABI, messengerAddress);
-                testTargetContract = new web3.eth.Contract(TEST_TARGET_ABI, testTargetAddress);
+                messengerContract = new web3.eth.Contract(MESSENGER_ABI, addresses.crossChainMessenger);
+                senderContract = new web3.eth.Contract(SENDER_ABI, addresses.crossChainMessageSender);
+                testTargetContract = new web3.eth.Contract(TEST_TARGET_ABI, addresses.testTarget);
                 
-                document.getElementById('contractStatus').textContent = 'Loaded';
-                document.getElementById('contractStatus').style.color = '#28a745';
+                logMessage('✅ Contracts loaded automatically', 'success');
                 
-                logMessage('Contracts loaded successfully', 'success');
-                await refreshState();
+                // Auto-refresh states for both chains
+                setTimeout(async () => {
+                    await autoRefreshStates();
+                }, 1000);
+                
             } catch (error) {
                 logMessage(`Error loading contracts: ${error.message}`, 'error');
             }
@@ -814,218 +915,17 @@
         function updateMessageForm() {
             const messageType = document.getElementById('messageType').value;
             const valueInput = document.getElementById('valueInput');
-            const customCallInput = document.getElementById('customCallInput');
             
             if (messageType === 'incrementCounter') {
                 valueInput.style.display = 'none';
-                customCallInput.style.display = 'none';
-            } else if (messageType === 'customCall') {
-                valueInput.style.display = 'none';
-                customCallInput.style.display = 'block';
             } else {
                 valueInput.style.display = 'block';
-                customCallInput.style.display = 'none';
             }
-            
-            updateEstimatedCost();
-        }
-        
-        function updateEstimatedCost() {
-            const sourceChain = document.getElementById('sourceChain').value;
-            const targetChain = document.getElementById('targetChain').value;
-            const gasLimit = document.getElementById('gasLimit').value;
-            
-            // Simulate cost calculation
-            const gasCosts = {
-                '1': 50,    // Ethereum - expensive
-                '137': 0.1, // Polygon - cheap
-                '56': 1,    // BSC - medium
-                '42161': 2, // Arbitrum - low
-                '31337': 0, // Hardhat - free
-                '11155111': 5 // Sepolia - testnet
-            };
-            
-            const sourceCost = (gasCosts[sourceChain] || 1) * (gasLimit / 21000);
-            const targetCost = (gasCosts[targetChain] || 1) * (gasLimit / 21000);
-            const relayerFee = 0.1; // Fixed relayer fee
-            
-            const totalCost = sourceCost + targetCost + relayerFee;
-            document.getElementById('estimatedCost').value = `~$${totalCost.toFixed(2)}`;
         }
         
         // Global message tracking
         let messageCounter = 0;
         let pendingMessages = [];
-
-        async function sendMessage() {
-            try {
-                if (!testTargetContract || !account) {
-                    logMessage('Please connect wallet and load contracts first', 'error');
-                    return;
-                }
-                
-                // Check account balance
-                const balance = await web3.eth.getBalance(account);
-                const balanceEth = web3.utils.fromWei(balance, 'ether');
-                logMessage(`Account balance: ${balanceEth} ETH`, 'info');
-                
-                if (parseFloat(balanceEth) < 0.01) {
-                    logMessage('Warning: Low ETH balance. Make sure you have enough ETH for gas', 'error');
-                }
-                
-                const targetChain = document.getElementById('targetChain').value;
-                const messageType = document.getElementById('messageType').value;
-                const messageValue = document.getElementById('messageValue').value;
-                
-                logMessage(`Executing ${messageType} directly on TestTarget contract...`, 'info');
-                logMessage(`Contract address: ${testTargetContract.options.address}`, 'info');
-                logMessage(`From account: ${account}`, 'info');
-                
-                let tx;
-                
-                try {
-                    if (messageType === 'setCounter') {
-                        if (!messageValue) {
-                            logMessage('Please enter a value for setCounter', 'error');
-                            return;
-                        }
-                        logMessage(`Calling setCounter(${messageValue})...`, 'info');
-                        
-                        // First test the call to make sure it works
-                        logMessage('Testing setCounter call...', 'info');
-                        await testTargetContract.methods.setCounter(messageValue).call({ from: account });
-                        logMessage('Call test successful, sending transaction...', 'info');
-                        
-                        tx = await testTargetContract.methods.setCounter(messageValue).send({ 
-                            from: account,
-                            gas: 200000  // Fixed gas limit that works
-                        });
-                    } else if (messageType === 'incrementCounter') {
-                        logMessage('Calling incrementCounter()...', 'info');
-                        
-                        logMessage('Testing incrementCounter call...', 'info');
-                        await testTargetContract.methods.incrementCounter().call({ from: account });
-                        logMessage('Call test successful, sending transaction...', 'info');
-                        
-                        tx = await testTargetContract.methods.incrementCounter().send({ 
-                            from: account,
-                            gas: 200000
-                        });
-                    } else if (messageType === 'storeValue') {
-                        if (!messageValue) {
-                            logMessage('Please enter a value for storeValue', 'error');
-                            return;
-                        }
-                        logMessage(`Calling storeValue(${messageValue})...`, 'info');
-                        
-                        logMessage('Testing storeValue call...', 'info');
-                        await testTargetContract.methods.storeValue(messageValue).call({ from: account });
-                        logMessage('Call test successful, sending transaction...', 'info');
-                        
-                        tx = await testTargetContract.methods.storeValue(messageValue).send({ 
-                            from: account,
-                            gas: 200000
-                        });
-                    }
-                    
-                    logMessage(`Transaction successful! Hash: ${tx.transactionHash}`, 'success');
-                    logMessage('Refreshing contract state...', 'info');
-                    
-                    // Auto-refresh state after successful transaction
-                    setTimeout(async () => {
-                        await refreshState();
-                    }, 1000);
-                    
-                } catch (contractError) {
-                    logMessage(`Contract call failed: ${contractError.message}`, 'error');
-                    console.error('Contract error details:', contractError);
-                    
-                    // Try to get more specific error info
-                    if (contractError.message.includes('revert')) {
-                        logMessage('Transaction was reverted by the contract', 'error');
-                    } else if (contractError.message.includes('gas')) {
-                        logMessage('Gas-related error - try increasing gas limit', 'error');
-                    } else if (contractError.message.includes('nonce')) {
-                        logMessage('Nonce error - try refreshing and resending', 'error');
-                    }
-                }
-                
-            } catch (error) {
-                logMessage(`Error executing message: ${error.message}`, 'error');
-                logMessage('Check console for detailed error information', 'info');
-                console.error('Detailed error:', error);
-            }
-        }
-
-        async function simulateRelayerProcessing() {
-            logMessage('Simulating relayer processing...', 'info');
-            logMessage('In a real implementation, relayers would:', 'info');
-            logMessage('1. Listen for MessageSent events', 'info');
-            logMessage('2. Create and sign message proofs', 'info');
-            logMessage('3. Call processMessage on target chain', 'info');
-            logMessage('4. Handle gas estimation and retry logic', 'info');
-            logMessage('Note: This demo runs on a single chain for simplicity', 'info');
-        }
-
-        async function addRelayer() {
-            try {
-                const relayerAddress = document.getElementById('relayerAddress').value;
-                if (!relayerAddress) {
-                    logMessage('Please enter relayer address', 'error');
-                    return;
-                }
-                
-                const tx = await messengerContract.methods.addRelayer(relayerAddress).send({ from: account });
-                logMessage(`Relayer added! Transaction: ${tx.transactionHash}`, 'success');
-            } catch (error) {
-                logMessage(`Error adding relayer: ${error.message}`, 'error');
-            }
-        }
-
-        async function removeRelayer() {
-            try {
-                const relayerAddress = document.getElementById('relayerAddress').value;
-                if (!relayerAddress) {
-                    logMessage('Please enter relayer address', 'error');
-                    return;
-                }
-                
-                const tx = await messengerContract.methods.removeRelayer(relayerAddress).send({ from: account });
-                logMessage(`Relayer removed! Transaction: ${tx.transactionHash}`, 'success');
-            } catch (error) {
-                logMessage(`Error removing relayer: ${error.message}`, 'error');
-            }
-        }
-
-        async function enableChain() {
-            try {
-                const chainId = document.getElementById('chainId').value;
-                if (!chainId) {
-                    logMessage('Please enter chain ID', 'error');
-                    return;
-                }
-                
-                const tx = await messengerContract.methods.enableChain(chainId).send({ from: account });
-                logMessage(`Chain ${chainId} enabled! Transaction: ${tx.transactionHash}`, 'success');
-            } catch (error) {
-                logMessage(`Error enabling chain: ${error.message}`, 'error');
-            }
-        }
-
-        async function disableChain() {
-            try {
-                const chainId = document.getElementById('chainId').value;
-                if (!chainId) {
-                    logMessage('Please enter chain ID', 'error');
-                    return;
-                }
-                
-                const tx = await messengerContract.methods.disableChain(chainId).send({ from: account });
-                logMessage(`Chain ${chainId} disabled! Transaction: ${tx.transactionHash}`, 'success');
-            } catch (error) {
-                logMessage(`Error disabling chain: ${error.message}`, 'error');
-            }
-        }
 
         function logMessage(message, type = 'info') {
             const logContainer = document.getElementById('logContainer');
@@ -1045,87 +945,159 @@
         // Initialize form
         updateMessageForm();
         
-        // Add event listeners for cost updates
-        document.getElementById('sourceChain').addEventListener('change', updateEstimatedCost);
-        document.getElementById('targetChain').addEventListener('change', updateEstimatedCost);
-        document.getElementById('gasLimit').addEventListener('input', updateEstimatedCost);
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tabs
+            document.getElementById('sepolia-tab').classList.remove('active');
+            document.getElementById('bsc-tab').classList.remove('active');
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active to clicked button
+            event.target.classList.add('active');
+        }
         
-        // New cross-chain functions
+        // State refresh functions
+        async function refreshSepoliaState() {
+            try {
+                logMessage('🔄 Refreshing Sepolia state...', 'info');
+                
+                // Create Web3 instance for Sepolia
+                const sepoliaWeb3 = new Web3('https://ethereum-sepolia-rpc.publicnode.com');
+                const sepoliaContract = new sepoliaWeb3.eth.Contract(TEST_TARGET_ABI, SEPOLIA_ADDRESSES.testTarget);
+                
+                // Get counter and stored values
+                const counter = await sepoliaContract.methods.counter().call();
+                const storedValue = await sepoliaContract.methods.storedValue().call();
+                
+                // Update display
+                document.getElementById('sepoliaCounter').textContent = counter;
+                document.getElementById('sepoliaStored').textContent = storedValue;
+                
+                logMessage('✅ Sepolia state refreshed', 'success');
+            } catch (error) {
+                logMessage(`❌ Error refreshing Sepolia state: ${error.message}`, 'error');
+                document.getElementById('sepoliaCounter').textContent = 'Error';
+                document.getElementById('sepoliaStored').textContent = 'Error';
+            }
+        }
+        
+        async function refreshBSCState() {
+            try {
+                logMessage('🔄 Refreshing BSC state...', 'info');
+                
+                // Create Web3 instance for BSC
+                const bscWeb3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545');
+                const bscContract = new bscWeb3.eth.Contract(TEST_TARGET_ABI, BSC_ADDRESSES.testTarget);
+                
+                // Get counter and stored values
+                const counter = await bscContract.methods.counter().call();
+                const storedValue = await bscContract.methods.storedValue().call();
+                
+                // Update display
+                document.getElementById('bscCounter').textContent = counter;
+                document.getElementById('bscStored').textContent = storedValue;
+                
+                logMessage('✅ BSC state refreshed', 'success');
+            } catch (error) {
+                logMessage(`❌ Error refreshing BSC state: ${error.message}`, 'error');
+                document.getElementById('bscCounter').textContent = 'Error';
+                document.getElementById('bscStored').textContent = 'Error';
+            }
+        }
+        
+        // Auto-refresh state when wallet connects
+        async function autoRefreshStates() {
+            await refreshSepoliaState();
+            await refreshBSCState();
+        }
+
         async function sendCrossChainMessage() {
             try {
-                const sourceChain = document.getElementById('sourceChain').value;
-                const targetChain = document.getElementById('targetChain').value;
+                if (!senderContract || !account) {
+                    logMessage('Please connect wallet and load contracts first', 'error');
+                    return;
+                }
+                
+                // Fixed: Sepolia → BSC Testnet
+                const sourceChain = '11155111'; // Sepolia
+                const targetChain = '97';       // BSC Testnet
                 const messageType = document.getElementById('messageType').value;
                 const messageValue = document.getElementById('messageValue').value;
                 
-                if (sourceChain === targetChain) {
-                    logMessage('⚠️ Source and target chains cannot be the same for cross-chain messaging', 'error');
+                if (!messageValue && messageType !== 'incrementCounter') {
+                    logMessage('Please enter a value for the message', 'error');
                     return;
                 }
+                
+                // Use BSC TestTarget address
+                const targetContractAddress = BSC_ADDRESSES.testTarget;
+                
+                // Encode the payload based on message type
+                let payload;
+                if (messageType === 'setCounter') {
+                    // Encode setCounter(uint256) call
+                    payload = web3.eth.abi.encodeFunctionCall({
+                        name: 'setCounter',
+                        type: 'function',
+                        inputs: [{type: 'uint256', name: 'newCounter'}]
+                    }, [messageValue]);
+                } else if (messageType === 'incrementCounter') {
+                    // Encode incrementCounter() call
+                    payload = web3.eth.abi.encodeFunctionCall({
+                        name: 'incrementCounter',
+                        type: 'function',
+                        inputs: []
+                    }, []);
+                } else if (messageType === 'storeValue') {
+                    // Encode storeValue(uint256) call
+                    payload = web3.eth.abi.encodeFunctionCall({
+                        name: 'storeValue',
+                        type: 'function',
+                        inputs: [{type: 'uint256', name: 'value'}]
+                    }, [messageValue]);
+                }
+                
+                logMessage(`🚀 Sending cross-chain message: Sepolia → BSC Testnet`, 'info');
+                logMessage(`📋 Target Contract: ${targetContractAddress}`, 'info');
+                logMessage(`📋 Message Type: ${messageType}, Value: ${messageValue || 'N/A'}`, 'info');
+                
+                // Call the CrossChainMessageSender contract
+                const tx = await senderContract.methods.sendMessage(
+                    targetChain,
+                    targetContractAddress,
+                    payload
+                ).send({
+                    from: account,
+                    gas: 300000  // Gas for the sendMessage transaction
+                });
+                
+                logMessage(`✅ Cross-chain message sent! Tx: ${tx.transactionHash}`, 'success');
+                logMessage(`🔗 View on Sepolia: https://sepolia.etherscan.io/tx/${tx.transactionHash}`, 'info');
+                logMessage(`⏳ Relayer will process this message and deliver to BSC Testnet`, 'info');
                 
                 const messageId = ++messageCounter;
                 const message = {
                     id: messageId,
-                    sourceChain: getChainName(sourceChain),
-                    targetChain: getChainName(targetChain),
+                    sourceChain: 'Sepolia Testnet',
+                    targetChain: 'BSC Testnet',
                     type: messageType,
-                    value: messageValue,
+                    value: messageValue || 'N/A',
                     status: 'pending',
-                    timestamp: new Date().toLocaleTimeString()
+                    timestamp: new Date().toLocaleTimeString(),
+                    txHash: tx.transactionHash
                 };
                 
                 addOutgoingMessage(message);
-                logMessage(`🚀 Cross-chain message initiated: ${sourceChain} → ${targetChain}`, 'success');
-                logMessage(`📋 Message Type: ${messageType}, Value: ${messageValue}`, 'info');
-                
-                // Simulate cross-chain processing
-                simulateMessageProcessing(message);
                 
             } catch (error) {
                 logMessage(`❌ Error sending cross-chain message: ${error.message}`, 'error');
+                console.error('Cross-chain error details:', error);
             }
-        }
-        
-        async function sendLocalMessage() {
-            // Use the existing sendMessage function for local testing
-            await sendMessage();
-        }
-        
-        async function simulateFullWorkflow() {
-            logMessage('🎭 Starting full cross-chain workflow simulation...', 'info');
-            
-            const steps = [
-                '1️⃣ Creating cross-chain message...',
-                '2️⃣ Signing message with relayer key...',
-                '3️⃣ Broadcasting to source chain...',
-                '4️⃣ Waiting for block confirmation...',
-                '5️⃣ Relayer detecting message event...',
-                '6️⃣ Generating merkle proof...',
-                '7️⃣ Submitting to target chain...',
-                '8️⃣ Target chain verification...',
-                '9️⃣ Executing message on target...',
-                '✅ Cross-chain message completed!'
-            ];
-            
-            for (let i = 0; i < steps.length; i++) {
-                setTimeout(() => {
-                    logMessage(steps[i], 'info');
-                }, i * 800);
-            }
-            
-            // Simulate adding a completed message
-            setTimeout(() => {
-                const message = {
-                    id: ++messageCounter,
-                    sourceChain: 'Ethereum',
-                    targetChain: 'Polygon',
-                    type: 'setCounter',
-                    value: '42',
-                    status: 'success',
-                    timestamp: new Date().toLocaleTimeString()
-                };
-                addIncomingMessage(message);
-            }, 8000);
         }
         
         function simulateMessageProcessing(message) {
@@ -1193,6 +1165,7 @@
                 '1': 'Ethereum',
                 '137': 'Polygon', 
                 '56': 'BSC',
+                '97': 'BSC Testnet',
                 '42161': 'Arbitrum',
                 '31337': 'Hardhat',
                 '11155111': 'Sepolia'
@@ -1204,212 +1177,6 @@
             logMessage('🔄 Refreshing message status...', 'info');
             // In a real app, this would query the blockchain for message states
             logMessage('✅ Message status refreshed', 'success');
-        }
-
-        // Auto-check node status on page load
-        checkNodeStatus();
-
-        // Helper functions for automation
-        async function checkNodeStatus() {
-            const indicator = document.getElementById('nodeStatusIndicator');
-            const statusElement = document.getElementById('nodeStatus');
-            
-            try {
-                indicator.className = 'status-indicator loading';
-                indicator.textContent = 'Checking...';
-                
-                let rpcUrl = 'http://localhost:8545';
-                let expectedChainId = '0x7a69'; // 31337 in hex for Hardhat
-                let networkName = 'Hardhat node';
-                
-                // Check if we're on a testnet via MetaMask
-                if (typeof window.ethereum !== 'undefined') {
-                    try {
-                        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                        if (chainId === '0xaa36a7') { // 11155111 in hex for Sepolia
-                            rpcUrl = 'https://ethereum-sepolia-rpc.publicnode.com';
-                            expectedChainId = '0xaa36a7';
-                            networkName = 'Sepolia testnet';
-                        }
-                    } catch (e) {
-                        // Fall back to Hardhat check
-                    }
-                }
-                
-                const response = await fetch(rpcUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        jsonrpc: '2.0',
-                        method: 'eth_chainId',
-                        params: [],
-                        id: 1
-                    })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.result === expectedChainId) {
-                        indicator.className = 'status-indicator success';
-                        indicator.textContent = `✅ Connected to ${networkName}!`;
-                        statusElement.textContent = 'Connected';
-                        statusElement.style.color = '#28a745';
-                        
-                        // Auto-try to fetch contract addresses
-                        setTimeout(() => tryFetchContractAddresses(), 1000);
-                    } else {
-                        throw new Error('Wrong network');
-                    }
-                } else {
-                    throw new Error('Connection failed');
-                }
-            } catch (error) {
-                indicator.className = 'status-indicator error';
-                indicator.textContent = '❌ Network not available. Connect MetaMask or run: npx hardhat node';
-                statusElement.textContent = 'Not Connected';
-                statusElement.style.color = '#dc3545';
-            }
-        }
-
-        async function tryFetchContractAddresses() {
-            const indicator = document.getElementById('deployStatusIndicator');
-            
-            try {
-                indicator.className = 'status-indicator loading';
-                indicator.textContent = 'Checking for deployed contracts...';
-                
-                // Initialize Web3 connection
-                let rpcUrl = 'http://localhost:8545';
-                
-                // Check if we're on a testnet via MetaMask
-                if (typeof window.ethereum !== 'undefined') {
-                    try {
-                        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                        if (chainId === '0xaa36a7') { // 11155111 in hex for Sepolia
-                            rpcUrl = 'https://ethereum-sepolia-rpc.publicnode.com';
-                        }
-                    } catch (e) {
-                        // Fall back to Hardhat
-                    }
-                }
-                
-                const tempWeb3 = new Web3(rpcUrl);
-                
-                // Known contract addresses by network
-                const KNOWN_ADDRESSES = {
-                    31337: { // Hardhat Local
-                        crossChainMessenger: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-                        testTarget: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
-                    },
-                    11155111: { // Sepolia Testnet
-                        crossChainMessenger: '0x3014b38b18ea56F34958702FbAC629594208CEFC',
-                        testTarget: '0x22e3675dD5514A7659066Bc11DfE48c3A97B0B7B'
-                    }
-                };
-                
-                // Get current network
-                const chainId = await tempWeb3.eth.getChainId();
-                const knownAddresses = KNOWN_ADDRESSES[chainId];
-                
-                if (knownAddresses) {
-                    // Use known addresses for this network
-                    document.getElementById('messengerAddress').value = knownAddresses.crossChainMessenger;
-                    document.getElementById('testTargetAddress').value = knownAddresses.testTarget;
-                    
-                    indicator.className = 'status-indicator success';
-                    indicator.textContent = `✅ Contract addresses loaded for ${getChainName(chainId.toString())}!`;
-                    
-                    logMessage(`Loaded contract addresses for ${getChainName(chainId.toString())}!`, 'success');
-                    logMessage(`CrossChainMessenger: ${knownAddresses.crossChainMessenger}`, 'info');
-                    logMessage(`TestTarget: ${knownAddresses.testTarget}`, 'info');
-                    
-                    // Auto-load contracts
-                    setTimeout(() => loadContracts(), 1000);
-                    return;
-                }
-                
-                // Fallback: Common deployment addresses (Hardhat deploys to these usually)
-                const commonAddresses = [
-                    '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-                    '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-                    '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-                    '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
-                ];
-                
-                let messengerAddr = null;
-                let testTargetAddr = null;
-                
-                // Check each address to see what's deployed
-                for (const addr of commonAddresses) {
-                    try {
-                        const code = await tempWeb3.eth.getCode(addr);
-                        if (code !== '0x') {
-                            // Try to determine which contract this is
-                            const contract = new tempWeb3.eth.Contract(TEST_TARGET_ABI, addr);
-                            try {
-                                await contract.methods.counter().call();
-                                testTargetAddr = addr;
-                                logMessage(`Found TestTarget at: ${addr}`, 'success');
-                            } catch {
-                                // Probably the messenger contract
-                                messengerAddr = addr;
-                                logMessage(`Found CrossChainMessenger at: ${addr}`, 'success');
-                            }
-                        }
-                    } catch (e) {
-                        // Continue checking other addresses
-                    }
-                }
-                
-                if (messengerAddr && testTargetAddr) {
-                    document.getElementById('messengerAddress').value = messengerAddr;
-                    document.getElementById('testTargetAddress').value = testTargetAddr;
-                    
-                    indicator.className = 'status-indicator success';
-                    indicator.textContent = '✅ Contract addresses auto-detected!';
-                    
-                    logMessage('Contract addresses auto-populated!', 'success');
-                    logMessage(`CrossChainMessenger: ${messengerAddr}`, 'info');
-                    logMessage(`TestTarget: ${testTargetAddr}`, 'info');
-                    
-                    // Auto-load contracts
-                    setTimeout(() => loadContracts(), 1000);
-                    
-                } else {
-                    indicator.className = 'status-indicator error';
-                    indicator.textContent = '❌ Contracts not found. Please deploy them first.';
-                }
-                
-            } catch (error) {
-                indicator.className = 'status-indicator error';
-                indicator.textContent = '❌ Error checking contracts: ' + error.message;
-            }
-        }
-
-        async function addHardhatNetwork() {
-            try {
-                if (typeof window.ethereum !== 'undefined') {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x7a69', // 31337 in hex
-                            chainName: 'Hardhat Local',
-                            nativeCurrency: {
-                                name: 'Ethereum',
-                                symbol: 'ETH',
-                                decimals: 18
-                            },
-                            rpcUrls: ['http://localhost:8545'],
-                            blockExplorerUrls: null
-                        }]
-                    });
-                    logMessage('✅ Hardhat network added to MetaMask!', 'success');
-                } else {
-                    logMessage('❌ MetaMask not detected', 'error');
-                }
-            } catch (error) {
-                logMessage(`Error adding network: ${error.message}`, 'error');
-            }
         }
 
         async function addSepoliaNetwork() {
@@ -1430,6 +1197,32 @@
                         }]
                     });
                     logMessage('✅ Sepolia testnet added to MetaMask!', 'success');
+                } else {
+                    logMessage('❌ MetaMask not detected', 'error');
+                }
+            } catch (error) {
+                logMessage(`Error adding network: ${error.message}`, 'error');
+            }
+        }
+
+        async function addBSCTestnetNetwork() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x61', // 97 in hex
+                            chainName: 'BSC Testnet',
+                            nativeCurrency: {
+                                name: 'BNB',
+                                symbol: 'BNB',
+                                decimals: 18
+                            },
+                            rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545'],
+                            blockExplorerUrls: ['https://testnet.bscscan.com']
+                        }]
+                    });
+                    logMessage('✅ BSC testnet added to MetaMask!', 'success');
                 } else {
                     logMessage('❌ MetaMask not detected', 'error');
                 }
@@ -1459,4 +1252,5 @@
         }
     </script>
 </body>
+</html> 
 </html> 
