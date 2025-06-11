@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cross-Chain Messaging Prototype</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@4.2.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.4/dist/web3.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -564,15 +564,29 @@
                     return;
                 }
                 
+                // Check if contract is deployed at the address
+                const code = await web3.eth.getCode(testTargetContract.options.address);
+                if (code === '0x') {
+                    logMessage('TestTarget contract not deployed at the specified address', 'error');
+                    return;
+                }
+                
+                logMessage('Calling counter() method...', 'info');
                 const counter = await testTargetContract.methods.counter().call();
+                logMessage(`Counter value: ${counter}`, 'info');
+                
+                logMessage('Calling storedValue() method...', 'info');
                 const storedValue = await testTargetContract.methods.storedValue().call();
+                logMessage(`Stored value: ${storedValue}`, 'info');
                 
                 document.getElementById('counterValue').value = counter;
                 document.getElementById('storedValue').value = storedValue;
                 
-                logMessage('Contract state refreshed', 'info');
+                logMessage('Contract state refreshed successfully', 'success');
             } catch (error) {
                 logMessage(`Error refreshing state: ${error.message}`, 'error');
+                logMessage(`Contract address: ${testTargetContract?.options?.address}`, 'error');
+                logMessage('Please check if the TestTarget contract is deployed correctly', 'error');
             }
         }
 
@@ -589,52 +603,101 @@
 
         async function sendMessage() {
             try {
-                if (!messengerContract || !account) {
+                if (!testTargetContract || !account) {
                     logMessage('Please connect wallet and load contracts first', 'error');
                     return;
+                }
+                
+                // Check account balance
+                const balance = await web3.eth.getBalance(account);
+                const balanceEth = web3.utils.fromWei(balance, 'ether');
+                logMessage(`Account balance: ${balanceEth} ETH`, 'info');
+                
+                if (parseFloat(balanceEth) < 0.01) {
+                    logMessage('Warning: Low ETH balance. Make sure you have enough ETH for gas', 'error');
                 }
                 
                 const targetChain = document.getElementById('targetChain').value;
                 const messageType = document.getElementById('messageType').value;
                 const messageValue = document.getElementById('messageValue').value;
-                const gasLimit = document.getElementById('gasLimit').value;
-                const testTargetAddress = document.getElementById('testTargetAddress').value;
                 
-                let payload;
+                logMessage(`Executing ${messageType} directly on TestTarget contract...`, 'info');
+                logMessage(`Contract address: ${testTargetContract.options.address}`, 'info');
+                logMessage(`From account: ${account}`, 'info');
                 
-                if (messageType === 'setCounter') {
-                    payload = web3.eth.abi.encodeFunctionCall({
-                        name: 'setCounter',
-                        type: 'function',
-                        inputs: [{type: 'uint256', name: '_counter'}]
-                    }, [messageValue]);
-                } else if (messageType === 'incrementCounter') {
-                    payload = web3.eth.abi.encodeFunctionCall({
-                        name: 'incrementCounter',
-                        type: 'function',
-                        inputs: []
-                    }, []);
-                } else if (messageType === 'storeValue') {
-                    payload = web3.eth.abi.encodeFunctionCall({
-                        name: 'storeValue',
-                        type: 'function',
-                        inputs: [{type: 'uint256', name: '_value'}]
-                    }, [messageValue]);
+                let tx;
+                
+                try {
+                    if (messageType === 'setCounter') {
+                        if (!messageValue) {
+                            logMessage('Please enter a value for setCounter', 'error');
+                            return;
+                        }
+                        logMessage(`Calling setCounter(${messageValue})...`, 'info');
+                        
+                        // First test the call to make sure it works
+                        logMessage('Testing setCounter call...', 'info');
+                        await testTargetContract.methods.setCounter(messageValue).call({ from: account });
+                        logMessage('Call test successful, sending transaction...', 'info');
+                        
+                        tx = await testTargetContract.methods.setCounter(messageValue).send({ 
+                            from: account,
+                            gas: 200000  // Fixed gas limit that works
+                        });
+                    } else if (messageType === 'incrementCounter') {
+                        logMessage('Calling incrementCounter()...', 'info');
+                        
+                        logMessage('Testing incrementCounter call...', 'info');
+                        await testTargetContract.methods.incrementCounter().call({ from: account });
+                        logMessage('Call test successful, sending transaction...', 'info');
+                        
+                        tx = await testTargetContract.methods.incrementCounter().send({ 
+                            from: account,
+                            gas: 200000
+                        });
+                    } else if (messageType === 'storeValue') {
+                        if (!messageValue) {
+                            logMessage('Please enter a value for storeValue', 'error');
+                            return;
+                        }
+                        logMessage(`Calling storeValue(${messageValue})...`, 'info');
+                        
+                        logMessage('Testing storeValue call...', 'info');
+                        await testTargetContract.methods.storeValue(messageValue).call({ from: account });
+                        logMessage('Call test successful, sending transaction...', 'info');
+                        
+                        tx = await testTargetContract.methods.storeValue(messageValue).send({ 
+                            from: account,
+                            gas: 200000
+                        });
+                    }
+                    
+                    logMessage(`Transaction successful! Hash: ${tx.transactionHash}`, 'success');
+                    logMessage('Refreshing contract state...', 'info');
+                    
+                    // Auto-refresh state after successful transaction
+                    setTimeout(async () => {
+                        await refreshState();
+                    }, 1000);
+                    
+                } catch (contractError) {
+                    logMessage(`Contract call failed: ${contractError.message}`, 'error');
+                    console.error('Contract error details:', contractError);
+                    
+                    // Try to get more specific error info
+                    if (contractError.message.includes('revert')) {
+                        logMessage('Transaction was reverted by the contract', 'error');
+                    } else if (contractError.message.includes('gas')) {
+                        logMessage('Gas-related error - try increasing gas limit', 'error');
+                    } else if (contractError.message.includes('nonce')) {
+                        logMessage('Nonce error - try refreshing and resending', 'error');
+                    }
                 }
                 
-                logMessage(`Sending ${messageType} message to chain ${targetChain}...`, 'info');
-                
-                const tx = await messengerContract.methods.sendMessage(
-                    targetChain,
-                    testTargetAddress,
-                    payload,
-                    gasLimit
-                ).send({ from: account });
-                
-                logMessage(`Message sent! Transaction: ${tx.transactionHash}`, 'success');
-                
             } catch (error) {
-                logMessage(`Error sending message: ${error.message}`, 'error');
+                logMessage(`Error executing message: ${error.message}`, 'error');
+                logMessage('Check console for detailed error information', 'info');
+                console.error('Detailed error:', error);
             }
         }
 
