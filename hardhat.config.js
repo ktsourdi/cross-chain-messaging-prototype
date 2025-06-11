@@ -15,7 +15,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: 1337,
+      chainId: 31337,
     },
     sepolia: {
       url: process.env.SEPOLIA_URL || "",
