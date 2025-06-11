@@ -290,17 +290,13 @@
             </div>
 
             <div class="section">
-                <h2>📨 Process Cross-Chain Message</h2>
-                
-                <div class="alert alert-info">
-                    <strong>ℹ️ Note:</strong> This contract is designed to receive and process messages from other chains. In a real setup, you would send messages from Chain A and process them here on Chain B.
-                </div>
+                <h2>📨 Send Cross-Chain Message</h2>
                 
                 <div class="grid">
                     <div>
                         <div class="form-group">
-                            <label for="sourceChain">Source Chain ID:</label>
-                            <select id="sourceChain">
+                            <label for="targetChain">Target Chain ID:</label>
+                            <select id="targetChain">
                                 <option value="1">Ethereum Mainnet</option>
                                 <option value="137">Polygon</option>
                                 <option value="56">BSC</option>
@@ -326,14 +322,14 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="senderAddress">Sender Address:</label>
-                            <input type="text" id="senderAddress" placeholder="0x..." />
+                            <label for="gasLimit">Gas Limit:</label>
+                            <input type="number" id="gasLimit" value="100000" />
                         </div>
                     </div>
                 </div>
                 
-                <button class="btn btn-success" onclick="processMessage()">Process Message</button>
-                <button class="btn btn-secondary" onclick="simulateDirectCall()">Direct Call (Test)</button>
+                <button class="btn btn-success" onclick="sendMessage()">Send Message</button>
+                <button class="btn btn-secondary" onclick="simulateRelayerProcessing()">Simulate Relayer Processing</button>
             </div>
 
             <div class="section">
@@ -381,7 +377,7 @@
 
         const MESSENGER_ABI = [
             {
-                "inputs": [{"internalType": "address","name": "relayer","type": "address"}],
+                "inputs": [],
                 "name": "addRelayer",
                 "outputs": [],
                 "stateMutability": "nonpayable",
@@ -389,7 +385,7 @@
             },
             {
                 "inputs": [{"internalType": "address","name": "relayer","type": "address"}],
-                "name": "removeRelayer",
+                "name": "addRelayer",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -409,22 +405,34 @@
                 "type": "function"
             },
             {
+                "inputs": [{"internalType": "address","name": "relayer","type": "address"}],
+                "name": "removeRelayer",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
                 "inputs": [
-                    {
-                        "components": [
-                            {"internalType": "uint256","name": "messageId","type": "uint256"},
-                            {"internalType": "uint256","name": "sourceChainId","type": "uint256"},
-                            {"internalType": "uint256","name": "targetChainId","type": "uint256"},
-                            {"internalType": "address","name": "sender","type": "address"},
-                            {"internalType": "address","name": "target","type": "address"},
-                            {"internalType": "bytes","name": "payload","type": "bytes"},
-                            {"internalType": "uint256","name": "nonce","type": "uint256"},
-                            {"internalType": "uint256","name": "timestamp","type": "uint256"}
-                        ],
-                        "internalType": "struct CrossChainMessenger.CrossChainMessage",
-                        "name": "message",
-                        "type": "tuple"
-                    },
+                    {"internalType": "uint256","name": "targetChain","type": "uint256"},
+                    {"internalType": "address","name": "targetContract","type": "address"},
+                    {"internalType": "bytes","name": "payload","type": "bytes"},
+                    {"internalType": "uint256","name": "gasLimit","type": "uint256"}
+                ],
+                "name": "sendMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "bytes32","name": "messageId","type": "bytes32"},
+                    {"internalType": "uint256","name": "sourceChain","type": "uint256"},
+                    {"internalType": "address","name": "sender","type": "address"},
+                    {"internalType": "address","name": "targetContract","type": "address"},
+                    {"internalType": "bytes","name": "payload","type": "bytes"},
+                    {"internalType": "uint256","name": "nonce","type": "uint256"},
+                    {"internalType": "uint256","name": "gasLimit","type": "uint256"},
+                    {"internalType": "uint256","name": "expiry","type": "uint256"},
                     {"internalType": "bytes","name": "signature","type": "bytes"}
                 ],
                 "name": "processMessage",
@@ -433,65 +441,36 @@
                 "type": "function"
             },
             {
-                "inputs": [
-                    {"internalType": "uint256","name": "sourceChainId","type": "uint256"},
-                    {"internalType": "address","name": "sender","type": "address"},
-                    {"internalType": "uint256","name": "nonce","type": "uint256"}
-                ],
-                "name": "generateMessageId",
-                "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
-                "stateMutability": "pure",
-                "type": "function"
-            },
-            {
                 "inputs": [{"internalType": "uint256","name": "chainId","type": "uint256"}],
-                "name": "getExpectedNonce",
+                "name": "getNextNonce",
                 "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "uint256","name": "messageId","type": "uint256"}],
-                "name": "isMessageProcessed",
-                "outputs": [{"internalType": "bool","name": "","type": "bool"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address","name": "","type": "address"}],
-                "name": "trustedRelayers",
-                "outputs": [{"internalType": "bool","name": "","type": "bool"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "uint256","name": "","type": "uint256"}],
-                "name": "supportedChains",
-                "outputs": [{"internalType": "bool","name": "","type": "bool"}],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "anonymous": false,
                 "inputs": [
-                    {"indexed": true,"internalType": "uint256","name": "messageId","type": "uint256"},
-                    {"indexed": true,"internalType": "uint256","name": "sourceChainId","type": "uint256"},
+                    {"indexed": true,"internalType": "bytes32","name": "messageId","type": "bytes32"},
+                    {"indexed": true,"internalType": "uint256","name": "targetChain","type": "uint256"},
                     {"indexed": true,"internalType": "address","name": "sender","type": "address"},
-                    {"indexed": false,"internalType": "address","name": "target","type": "address"},
+                    {"indexed": false,"internalType": "address","name": "targetContract","type": "address"},
                     {"indexed": false,"internalType": "bytes","name": "payload","type": "bytes"},
-                    {"indexed": false,"internalType": "uint256","name": "nonce","type": "uint256"}
+                    {"indexed": false,"internalType": "uint256","name": "nonce","type": "uint256"},
+                    {"indexed": false,"internalType": "uint256","name": "gasLimit","type": "uint256"}
                 ],
-                "name": "MessageReceived",
+                "name": "MessageSent",
                 "type": "event"
             },
             {
                 "anonymous": false,
                 "inputs": [
-                    {"indexed": true,"internalType": "uint256","name": "messageId","type": "uint256"},
-                    {"indexed": false,"internalType": "bool","name": "success","type": "bool"},
-                    {"indexed": false,"internalType": "bytes","name": "returnData","type": "bytes"}
+                    {"indexed": true,"internalType": "bytes32","name": "messageId","type": "bytes32"},
+                    {"indexed": true,"internalType": "uint256","name": "sourceChain","type": "uint256"},
+                    {"indexed": true,"internalType": "address","name": "sender","type": "address"},
+                    {"indexed": false,"internalType": "address","name": "targetContract","type": "address"},
+                    {"indexed": false,"internalType": "bool","name": "success","type": "bool"}
                 ],
-                "name": "MessageExecuted",
+                "name": "MessageProcessed",
                 "type": "event"
             }
         ];
@@ -607,23 +586,18 @@
             }
         }
 
-        async function processMessage() {
+        async function sendMessage() {
             try {
                 if (!messengerContract || !account) {
                     logMessage('Please connect wallet and load contracts first', 'error');
                     return;
                 }
                 
-                const sourceChain = document.getElementById('sourceChain').value;
+                const targetChain = document.getElementById('targetChain').value;
                 const messageType = document.getElementById('messageType').value;
                 const messageValue = document.getElementById('messageValue').value;
-                const senderAddress = document.getElementById('senderAddress').value || account;
+                const gasLimit = document.getElementById('gasLimit').value;
                 const testTargetAddress = document.getElementById('testTargetAddress').value;
-                
-                if (!testTargetAddress) {
-                    logMessage('Please enter TestTarget address', 'error');
-                    return;
-                }
                 
                 let payload;
                 
@@ -632,7 +606,7 @@
                         name: 'setCounter',
                         type: 'function',
                         inputs: [{type: 'uint256', name: '_counter'}]
-                    }, [messageValue || 0]);
+                    }, [messageValue]);
                 } else if (messageType === 'incrementCounter') {
                     payload = web3.eth.abi.encodeFunctionCall({
                         name: 'incrementCounter',
@@ -644,92 +618,33 @@
                         name: 'storeValue',
                         type: 'function',
                         inputs: [{type: 'uint256', name: '_value'}]
-                    }, [messageValue || 0]);
+                    }, [messageValue]);
                 }
                 
-                // Get expected nonce
-                const nonce = await messengerContract.methods.getExpectedNonce(sourceChain).call();
+                logMessage(`Sending ${messageType} message to chain ${targetChain}...`, 'info');
                 
-                // Generate message ID
-                const messageId = await messengerContract.methods.generateMessageId(
-                    sourceChain, 
-                    senderAddress, 
-                    nonce
-                ).call();
-                
-                const currentChainId = await web3.eth.getChainId();
-                const timestamp = Math.floor(Date.now() / 1000);
-                
-                const message = {
-                    messageId: messageId,
-                    sourceChainId: sourceChain,
-                    targetChainId: currentChainId,
-                    sender: senderAddress,
-                    target: testTargetAddress,
-                    payload: payload,
-                    nonce: nonce,
-                    timestamp: timestamp
-                };
-                
-                // Create message hash for signing
-                const messageHash = web3.utils.soliditySha3(
-                    {type: 'uint256', value: message.messageId},
-                    {type: 'uint256', value: message.sourceChainId},
-                    {type: 'uint256', value: message.targetChainId},
-                    {type: 'address', value: message.sender},
-                    {type: 'address', value: message.target},
-                    {type: 'bytes', value: message.payload},
-                    {type: 'uint256', value: message.nonce},
-                    {type: 'uint256', value: message.timestamp}
-                );
-                
-                // Sign the message
-                const signature = await web3.eth.personal.sign(messageHash, account);
-                
-                logMessage(`Processing ${messageType} message from chain ${sourceChain}...`, 'info');
-                logMessage(`Message ID: ${messageId}`, 'info');
-                logMessage(`Nonce: ${nonce}`, 'info');
-                
-                const tx = await messengerContract.methods.processMessage(
-                    message,
-                    signature
+                const tx = await messengerContract.methods.sendMessage(
+                    targetChain,
+                    testTargetAddress,
+                    payload,
+                    gasLimit
                 ).send({ from: account });
                 
-                logMessage(`Message processed! Transaction: ${tx.transactionHash}`, 'success');
-                await refreshState();
+                logMessage(`Message sent! Transaction: ${tx.transactionHash}`, 'success');
                 
             } catch (error) {
-                logMessage(`Error processing message: ${error.message}`, 'error');
+                logMessage(`Error sending message: ${error.message}`, 'error');
             }
         }
 
-        async function simulateDirectCall() {
-            try {
-                if (!testTargetContract || !account) {
-                    logMessage('Please connect wallet and load contracts first', 'error');
-                    return;
-                }
-                
-                const messageType = document.getElementById('messageType').value;
-                const messageValue = document.getElementById('messageValue').value;
-                
-                logMessage(`Making direct call: ${messageType}`, 'info');
-                
-                let tx;
-                if (messageType === 'setCounter') {
-                    tx = await testTargetContract.methods.setCounter(messageValue || 0).send({ from: account });
-                } else if (messageType === 'incrementCounter') {
-                    tx = await testTargetContract.methods.incrementCounter().send({ from: account });
-                } else if (messageType === 'storeValue') {
-                    tx = await testTargetContract.methods.storeValue(messageValue || 0).send({ from: account });
-                }
-                
-                logMessage(`Direct call successful! Transaction: ${tx.transactionHash}`, 'success');
-                await refreshState();
-                
-            } catch (error) {
-                logMessage(`Error with direct call: ${error.message}`, 'error');
-            }
+        async function simulateRelayerProcessing() {
+            logMessage('Simulating relayer processing...', 'info');
+            logMessage('In a real implementation, relayers would:', 'info');
+            logMessage('1. Listen for MessageSent events', 'info');
+            logMessage('2. Create and sign message proofs', 'info');
+            logMessage('3. Call processMessage on target chain', 'info');
+            logMessage('4. Handle gas estimation and retry logic', 'info');
+            logMessage('Note: This demo runs on a single chain for simplicity', 'info');
         }
 
         async function addRelayer() {
