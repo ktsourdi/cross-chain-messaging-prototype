@@ -266,6 +266,65 @@
             font-size: 0.9rem;
         }
 
+        .message-list {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            background: white;
+            border-left: 4px solid #007bff;
+            font-size: 0.9rem;
+        }
+
+        .message-item.pending {
+            border-left-color: #ffc107;
+        }
+
+        .message-item.success {
+            border-left-color: #28a745;
+        }
+
+        .message-item.failed {
+            border-left-color: #dc3545;
+        }
+
+        .chain-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .chain-ethereum {
+            background: #627eea;
+            color: white;
+        }
+
+        .chain-polygon {
+            background: #8247e5;
+            color: white;
+        }
+
+        .chain-bsc {
+            background: #f3ba2f;
+            color: black;
+        }
+
+        .chain-arbitrum {
+            background: #28a0f0;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -324,6 +383,7 @@
                             <li><strong>Currency:</strong> ETH</li>
                         </ul>
                         <button class="btn" onclick="addHardhatNetwork()">Add Hardhat Network</button>
+                        <button class="btn btn-secondary" onclick="addSepoliaNetwork()">Add Sepolia Network</button>
                     </div>
                     
                     <div>
@@ -391,19 +451,35 @@
             </div>
 
             <div class="section">
-                <h2>📨 Send Cross-Chain Message</h2>
+                <h2>📨 Cross-Chain Message Hub</h2>
+                
+                <div class="alert alert-info">
+                    <strong>🌉 Cross-Chain Demo:</strong> This simulates sending messages between different blockchain networks. In production, relayers would process messages across real chains.
+                </div>
                 
                 <div class="grid">
                     <div>
                         <div class="form-group">
-                            <label for="targetChain">Target Chain ID:</label>
+                            <label for="sourceChain">Source Chain (Current):</label>
+                            <select id="sourceChain">
+                                <option value="31337">🏠 Hardhat Localhost</option>
+                                <option value="1">🔷 Ethereum Mainnet</option>
+                                <option value="137">🟣 Polygon</option>
+                                <option value="56">🟡 BSC</option>
+                                <option value="42161">🔵 Arbitrum</option>
+                                <option value="11155111">🧪 Sepolia Testnet</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="targetChain">Target Chain (Destination):</label>
                             <select id="targetChain">
-                                <option value="31337">Hardhat Localhost</option>
-                                <option value="1">Ethereum Mainnet</option>
-                                <option value="137">Polygon</option>
-                                <option value="56">BSC</option>
-                                <option value="42161">Arbitrum</option>
-                                <option value="11155111">Sepolia Testnet</option>
+                                <option value="137">🟣 Polygon</option>
+                                <option value="31337">🏠 Hardhat Localhost</option>
+                                <option value="1">🔷 Ethereum Mainnet</option>
+                                <option value="56">🟡 BSC</option>
+                                <option value="42161">🔵 Arbitrum</option>
+                                <option value="11155111">🧪 Sepolia Testnet</option>
                             </select>
                         </div>
                         
@@ -413,6 +489,7 @@
                                 <option value="setCounter">Set Counter</option>
                                 <option value="incrementCounter">Increment Counter</option>
                                 <option value="storeValue">Store Value</option>
+                                <option value="customCall">Custom Contract Call</option>
                             </select>
                         </div>
                     </div>
@@ -423,15 +500,50 @@
                             <input type="number" id="messageValue" placeholder="Enter value" />
                         </div>
                         
+                        <div class="form-group" id="customCallInput" style="display: none;">
+                            <label for="customCallData">Custom Call Data:</label>
+                            <input type="text" id="customCallData" placeholder="0x..." />
+                        </div>
+                        
                         <div class="form-group">
                             <label for="gasLimit">Gas Limit:</label>
-                            <input type="number" id="gasLimit" value="100000" />
+                            <input type="number" id="gasLimit" value="200000" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Estimated Cost:</label>
+                            <input type="text" id="estimatedCost" readonly placeholder="~$0.50" />
                         </div>
                     </div>
                 </div>
                 
-                <button class="btn btn-success" onclick="sendMessage()">Send Message</button>
-                <button class="btn btn-secondary" onclick="simulateRelayerProcessing()">Simulate Relayer Processing</button>
+                <div class="grid">
+                    <button class="btn btn-success" onclick="sendCrossChainMessage()">🚀 Send Cross-Chain Message</button>
+                    <button class="btn btn-secondary" onclick="simulateFullWorkflow()">🎭 Simulate Full Workflow</button>
+                    <button class="btn" onclick="sendLocalMessage()">📍 Send Local Message</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔄 Cross-Chain Message Status</h2>
+                
+                <div class="grid">
+                    <div>
+                        <h3>📤 Outgoing Messages</h3>
+                        <div id="outgoingMessages" class="message-list">
+                            <div class="message-item">No messages sent yet</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3>📥 Incoming Messages</h3>
+                        <div id="incomingMessages" class="message-list">
+                            <div class="message-item">No messages received yet</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="refreshMessageStatus()">🔄 Refresh Status</button>
             </div>
 
             <div class="section">
@@ -702,13 +814,48 @@
         function updateMessageForm() {
             const messageType = document.getElementById('messageType').value;
             const valueInput = document.getElementById('valueInput');
+            const customCallInput = document.getElementById('customCallInput');
             
             if (messageType === 'incrementCounter') {
                 valueInput.style.display = 'none';
+                customCallInput.style.display = 'none';
+            } else if (messageType === 'customCall') {
+                valueInput.style.display = 'none';
+                customCallInput.style.display = 'block';
             } else {
                 valueInput.style.display = 'block';
+                customCallInput.style.display = 'none';
             }
+            
+            updateEstimatedCost();
         }
+        
+        function updateEstimatedCost() {
+            const sourceChain = document.getElementById('sourceChain').value;
+            const targetChain = document.getElementById('targetChain').value;
+            const gasLimit = document.getElementById('gasLimit').value;
+            
+            // Simulate cost calculation
+            const gasCosts = {
+                '1': 50,    // Ethereum - expensive
+                '137': 0.1, // Polygon - cheap
+                '56': 1,    // BSC - medium
+                '42161': 2, // Arbitrum - low
+                '31337': 0, // Hardhat - free
+                '11155111': 5 // Sepolia - testnet
+            };
+            
+            const sourceCost = (gasCosts[sourceChain] || 1) * (gasLimit / 21000);
+            const targetCost = (gasCosts[targetChain] || 1) * (gasLimit / 21000);
+            const relayerFee = 0.1; // Fixed relayer fee
+            
+            const totalCost = sourceCost + targetCost + relayerFee;
+            document.getElementById('estimatedCost').value = `~$${totalCost.toFixed(2)}`;
+        }
+        
+        // Global message tracking
+        let messageCounter = 0;
+        let pendingMessages = [];
 
         async function sendMessage() {
             try {
@@ -897,6 +1044,167 @@
 
         // Initialize form
         updateMessageForm();
+        
+        // Add event listeners for cost updates
+        document.getElementById('sourceChain').addEventListener('change', updateEstimatedCost);
+        document.getElementById('targetChain').addEventListener('change', updateEstimatedCost);
+        document.getElementById('gasLimit').addEventListener('input', updateEstimatedCost);
+        
+        // New cross-chain functions
+        async function sendCrossChainMessage() {
+            try {
+                const sourceChain = document.getElementById('sourceChain').value;
+                const targetChain = document.getElementById('targetChain').value;
+                const messageType = document.getElementById('messageType').value;
+                const messageValue = document.getElementById('messageValue').value;
+                
+                if (sourceChain === targetChain) {
+                    logMessage('⚠️ Source and target chains cannot be the same for cross-chain messaging', 'error');
+                    return;
+                }
+                
+                const messageId = ++messageCounter;
+                const message = {
+                    id: messageId,
+                    sourceChain: getChainName(sourceChain),
+                    targetChain: getChainName(targetChain),
+                    type: messageType,
+                    value: messageValue,
+                    status: 'pending',
+                    timestamp: new Date().toLocaleTimeString()
+                };
+                
+                addOutgoingMessage(message);
+                logMessage(`🚀 Cross-chain message initiated: ${sourceChain} → ${targetChain}`, 'success');
+                logMessage(`📋 Message Type: ${messageType}, Value: ${messageValue}`, 'info');
+                
+                // Simulate cross-chain processing
+                simulateMessageProcessing(message);
+                
+            } catch (error) {
+                logMessage(`❌ Error sending cross-chain message: ${error.message}`, 'error');
+            }
+        }
+        
+        async function sendLocalMessage() {
+            // Use the existing sendMessage function for local testing
+            await sendMessage();
+        }
+        
+        async function simulateFullWorkflow() {
+            logMessage('🎭 Starting full cross-chain workflow simulation...', 'info');
+            
+            const steps = [
+                '1️⃣ Creating cross-chain message...',
+                '2️⃣ Signing message with relayer key...',
+                '3️⃣ Broadcasting to source chain...',
+                '4️⃣ Waiting for block confirmation...',
+                '5️⃣ Relayer detecting message event...',
+                '6️⃣ Generating merkle proof...',
+                '7️⃣ Submitting to target chain...',
+                '8️⃣ Target chain verification...',
+                '9️⃣ Executing message on target...',
+                '✅ Cross-chain message completed!'
+            ];
+            
+            for (let i = 0; i < steps.length; i++) {
+                setTimeout(() => {
+                    logMessage(steps[i], 'info');
+                }, i * 800);
+            }
+            
+            // Simulate adding a completed message
+            setTimeout(() => {
+                const message = {
+                    id: ++messageCounter,
+                    sourceChain: 'Ethereum',
+                    targetChain: 'Polygon',
+                    type: 'setCounter',
+                    value: '42',
+                    status: 'success',
+                    timestamp: new Date().toLocaleTimeString()
+                };
+                addIncomingMessage(message);
+            }, 8000);
+        }
+        
+        function simulateMessageProcessing(message) {
+            // Simulate processing delay
+            setTimeout(() => {
+                message.status = 'relaying';
+                updateMessageStatus(message);
+                logMessage(`🔄 Message ${message.id} being processed by relayers...`, 'info');
+            }, 2000);
+            
+            setTimeout(() => {
+                message.status = 'success';
+                updateMessageStatus(message);
+                addIncomingMessage(message);
+                logMessage(`✅ Message ${message.id} successfully delivered to ${message.targetChain}!`, 'success');
+            }, 5000);
+        }
+        
+        function addOutgoingMessage(message) {
+            const container = document.getElementById('outgoingMessages');
+            if (container.children[0]?.textContent === 'No messages sent yet') {
+                container.innerHTML = '';
+            }
+            
+            const messageElement = createMessageElement(message);
+            container.appendChild(messageElement);
+        }
+        
+        function addIncomingMessage(message) {
+            const container = document.getElementById('incomingMessages');
+            if (container.children[0]?.textContent === 'No messages received yet') {
+                container.innerHTML = '';
+            }
+            
+            const messageElement = createMessageElement(message);
+            container.appendChild(messageElement);
+        }
+        
+        function createMessageElement(message) {
+            const div = document.createElement('div');
+            div.className = `message-item ${message.status}`;
+            div.id = `message-${message.id}`;
+            div.innerHTML = `
+                <div><strong>Message #${message.id}</strong> - ${message.type}</div>
+                <div>
+                    <span class="chain-badge">${message.sourceChain}</span> → 
+                    <span class="chain-badge">${message.targetChain}</span>
+                </div>
+                <div>Value: ${message.value} | Status: ${message.status} | ${message.timestamp}</div>
+            `;
+            return div;
+        }
+        
+        function updateMessageStatus(message) {
+            const element = document.getElementById(`message-${message.id}`);
+            if (element) {
+                element.className = `message-item ${message.status}`;
+                element.querySelector('div:last-child').textContent = 
+                    `Value: ${message.value} | Status: ${message.status} | ${message.timestamp}`;
+            }
+        }
+        
+        function getChainName(chainId) {
+            const names = {
+                '1': 'Ethereum',
+                '137': 'Polygon', 
+                '56': 'BSC',
+                '42161': 'Arbitrum',
+                '31337': 'Hardhat',
+                '11155111': 'Sepolia'
+            };
+            return names[chainId] || `Chain ${chainId}`;
+        }
+        
+        function refreshMessageStatus() {
+            logMessage('🔄 Refreshing message status...', 'info');
+            // In a real app, this would query the blockchain for message states
+            logMessage('✅ Message status refreshed', 'success');
+        }
 
         // Auto-check node status on page load
         checkNodeStatus();
@@ -910,8 +1218,25 @@
                 indicator.className = 'status-indicator loading';
                 indicator.textContent = 'Checking...';
                 
-                // Try to connect to localhost:8545
-                const response = await fetch('http://localhost:8545', {
+                let rpcUrl = 'http://localhost:8545';
+                let expectedChainId = '0x7a69'; // 31337 in hex for Hardhat
+                let networkName = 'Hardhat node';
+                
+                // Check if we're on a testnet via MetaMask
+                if (typeof window.ethereum !== 'undefined') {
+                    try {
+                        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                        if (chainId === '0xaa36a7') { // 11155111 in hex for Sepolia
+                            rpcUrl = 'https://ethereum-sepolia-rpc.publicnode.com';
+                            expectedChainId = '0xaa36a7';
+                            networkName = 'Sepolia testnet';
+                        }
+                    } catch (e) {
+                        // Fall back to Hardhat check
+                    }
+                }
+                
+                const response = await fetch(rpcUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -924,10 +1249,10 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.result === '0x7a69') { // 31337 in hex
+                    if (data.result === expectedChainId) {
                         indicator.className = 'status-indicator success';
-                        indicator.textContent = '✅ Hardhat node is running!';
-                        statusElement.textContent = 'Running';
+                        indicator.textContent = `✅ Connected to ${networkName}!`;
+                        statusElement.textContent = 'Connected';
                         statusElement.style.color = '#28a745';
                         
                         // Auto-try to fetch contract addresses
@@ -940,8 +1265,8 @@
                 }
             } catch (error) {
                 indicator.className = 'status-indicator error';
-                indicator.textContent = '❌ Hardhat node not running. Run: npx hardhat node';
-                statusElement.textContent = 'Not Running';
+                indicator.textContent = '❌ Network not available. Connect MetaMask or run: npx hardhat node';
+                statusElement.textContent = 'Not Connected';
                 statusElement.style.color = '#dc3545';
             }
         }
@@ -953,7 +1278,57 @@
                 indicator.className = 'status-indicator loading';
                 indicator.textContent = 'Checking for deployed contracts...';
                 
-                // Common deployment addresses (Hardhat deploys to these usually)
+                // Initialize Web3 connection
+                let rpcUrl = 'http://localhost:8545';
+                
+                // Check if we're on a testnet via MetaMask
+                if (typeof window.ethereum !== 'undefined') {
+                    try {
+                        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                        if (chainId === '0xaa36a7') { // 11155111 in hex for Sepolia
+                            rpcUrl = 'https://ethereum-sepolia-rpc.publicnode.com';
+                        }
+                    } catch (e) {
+                        // Fall back to Hardhat
+                    }
+                }
+                
+                const tempWeb3 = new Web3(rpcUrl);
+                
+                // Known contract addresses by network
+                const KNOWN_ADDRESSES = {
+                    31337: { // Hardhat Local
+                        crossChainMessenger: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+                        testTarget: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
+                    },
+                    11155111: { // Sepolia Testnet
+                        crossChainMessenger: '0x3014b38b18ea56F34958702FbAC629594208CEFC',
+                        testTarget: '0x22e3675dD5514A7659066Bc11DfE48c3A97B0B7B'
+                    }
+                };
+                
+                // Get current network
+                const chainId = await tempWeb3.eth.getChainId();
+                const knownAddresses = KNOWN_ADDRESSES[chainId];
+                
+                if (knownAddresses) {
+                    // Use known addresses for this network
+                    document.getElementById('messengerAddress').value = knownAddresses.crossChainMessenger;
+                    document.getElementById('testTargetAddress').value = knownAddresses.testTarget;
+                    
+                    indicator.className = 'status-indicator success';
+                    indicator.textContent = `✅ Contract addresses loaded for ${getChainName(chainId.toString())}!`;
+                    
+                    logMessage(`Loaded contract addresses for ${getChainName(chainId.toString())}!`, 'success');
+                    logMessage(`CrossChainMessenger: ${knownAddresses.crossChainMessenger}`, 'info');
+                    logMessage(`TestTarget: ${knownAddresses.testTarget}`, 'info');
+                    
+                    // Auto-load contracts
+                    setTimeout(() => loadContracts(), 1000);
+                    return;
+                }
+                
+                // Fallback: Common deployment addresses (Hardhat deploys to these usually)
                 const commonAddresses = [
                     '0x5FbDB2315678afecb367f032d93F642f64180aa3',
                     '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
@@ -961,7 +1336,6 @@
                     '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
                 ];
                 
-                const tempWeb3 = new Web3('http://localhost:8545');
                 let messengerAddr = null;
                 let testTargetAddr = null;
                 
@@ -1030,6 +1404,32 @@
                         }]
                     });
                     logMessage('✅ Hardhat network added to MetaMask!', 'success');
+                } else {
+                    logMessage('❌ MetaMask not detected', 'error');
+                }
+            } catch (error) {
+                logMessage(`Error adding network: ${error.message}`, 'error');
+            }
+        }
+
+        async function addSepoliaNetwork() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0xaa36a7', // 11155111 in hex
+                            chainName: 'Sepolia Testnet',
+                            nativeCurrency: {
+                                name: 'Ethereum',
+                                symbol: 'ETH',
+                                decimals: 18
+                            },
+                            rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
+                            blockExplorerUrls: ['https://sepolia.etherscan.io']
+                        }]
+                    });
+                    logMessage('✅ Sepolia testnet added to MetaMask!', 'success');
                 } else {
                     logMessage('❌ MetaMask not detected', 'error');
                 }
