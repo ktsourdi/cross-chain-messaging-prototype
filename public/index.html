@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Chain Messaging Prototype</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@4.2.0/dist/web3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .status-value {
+            color: #007bff;
+            font-family: monospace;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #00ff00;
+            padding-left: 10px;
+        }
+
+        .log-error {
+            color: #ff6b6b;
+            border-left-color: #ff6b6b;
+        }
+
+        .log-success {
+            color: #51cf66;
+            border-left-color: #51cf66;
+        }
+
+        .log-info {
+            color: #74c0fc;
+            border-left-color: #74c0fc;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌉 Cross-Chain Messaging</h1>
+            <p>Test and interact with the cross-chain messaging prototype</p>
+        </div>
+
+        <div class="main-content">
+            <div class="alert alert-warning">
+                <strong>⚠️ Note:</strong> This interface works with local Hardhat network. Make sure your contracts are deployed and MetaMask is connected to localhost:8545.
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Wallet Status:</span>
+                    <span class="status-value" id="walletStatus">Not Connected</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Network:</span>
+                    <span class="status-value" id="networkStatus">Unknown</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Contract Address:</span>
+                    <span class="status-value" id="contractAddress">Not Set</span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="section">
+                    <h2>🔧 Setup</h2>
+                    
+                    <div class="form-group">
+                        <label for="messengerAddress">CrossChainMessenger Address:</label>
+                        <input type="text" id="messengerAddress" placeholder="0x..." />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testTargetAddress">TestTarget Address:</label>
+                        <input type="text" id="testTargetAddress" placeholder="0x..." />
+                    </div>
+                    
+                    <button class="btn" onclick="connectWallet()">Connect Wallet</button>
+                    <button class="btn btn-secondary" onclick="loadContracts()">Load Contracts</button>
+                </div>
+
+                <div class="section">
+                    <h2>📊 Contract State</h2>
+                    
+                    <div class="form-group">
+                        <label>TestTarget Counter:</label>
+                        <input type="text" id="counterValue" readonly />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Stored Value:</label>
+                        <input type="text" id="storedValue" readonly />
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="refreshState()">Refresh State</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📨 Send Cross-Chain Message</h2>
+                
+                <div class="grid">
+                    <div>
+                        <div class="form-group">
+                            <label for="targetChain">Target Chain ID:</label>
+                            <select id="targetChain">
+                                <option value="1">Ethereum Mainnet</option>
+                                <option value="137">Polygon</option>
+                                <option value="56">BSC</option>
+                                <option value="42161">Arbitrum</option>
+                                <option value="11155111">Sepolia Testnet</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="messageType">Message Type:</label>
+                            <select id="messageType" onchange="updateMessageForm()">
+                                <option value="setCounter">Set Counter</option>
+                                <option value="incrementCounter">Increment Counter</option>
+                                <option value="storeValue">Store Value</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="form-group" id="valueInput">
+                            <label for="messageValue">Value:</label>
+                            <input type="number" id="messageValue" placeholder="Enter value" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gasLimit">Gas Limit:</label>
+                            <input type="number" id="gasLimit" value="100000" />
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="sendMessage()">Send Message</button>
+                <button class="btn btn-secondary" onclick="simulateRelayerProcessing()">Simulate Relayer Processing</button>
+            </div>
+
+            <div class="section">
+                <h2>🔐 Admin Functions</h2>
+                
+                <div class="grid">
+                    <div>
+                        <div class="form-group">
+                            <label for="relayerAddress">Relayer Address:</label>
+                            <input type="text" id="relayerAddress" placeholder="0x..." />
+                        </div>
+                        
+                        <button class="btn" onclick="addRelayer()">Add Relayer</button>
+                        <button class="btn btn-danger" onclick="removeRelayer()">Remove Relayer</button>
+                    </div>
+                    
+                    <div>
+                        <div class="form-group">
+                            <label for="chainId">Chain ID:</label>
+                            <input type="number" id="chainId" placeholder="1, 137, 56..." />
+                        </div>
+                        
+                        <button class="btn" onclick="enableChain()">Enable Chain</button>
+                        <button class="btn btn-danger" onclick="disableChain()">Disable Chain</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📋 Activity Log</h2>
+                <button class="btn btn-secondary" onclick="clearLog()">Clear Log</button>
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry log-info">Welcome to Cross-Chain Messaging Interface</div>
+                    <div class="log-entry log-info">Connect your wallet and load contracts to get started</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let web3;
+        let account;
+        let messengerContract;
+        let testTargetContract;
+
+        const MESSENGER_ABI = [
+            {
+                "inputs": [],
+                "name": "addRelayer",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address","name": "relayer","type": "address"}],
+                "name": "addRelayer",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256","name": "chainId","type": "uint256"}],
+                "name": "enableChain",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256","name": "chainId","type": "uint256"}],
+                "name": "disableChain",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address","name": "relayer","type": "address"}],
+                "name": "removeRelayer",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256","name": "targetChain","type": "uint256"},
+                    {"internalType": "address","name": "targetContract","type": "address"},
+                    {"internalType": "bytes","name": "payload","type": "bytes"},
+                    {"internalType": "uint256","name": "gasLimit","type": "uint256"}
+                ],
+                "name": "sendMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "bytes32","name": "messageId","type": "bytes32"},
+                    {"internalType": "uint256","name": "sourceChain","type": "uint256"},
+                    {"internalType": "address","name": "sender","type": "address"},
+                    {"internalType": "address","name": "targetContract","type": "address"},
+                    {"internalType": "bytes","name": "payload","type": "bytes"},
+                    {"internalType": "uint256","name": "nonce","type": "uint256"},
+                    {"internalType": "uint256","name": "gasLimit","type": "uint256"},
+                    {"internalType": "uint256","name": "expiry","type": "uint256"},
+                    {"internalType": "bytes","name": "signature","type": "bytes"}
+                ],
+                "name": "processMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256","name": "chainId","type": "uint256"}],
+                "name": "getNextNonce",
+                "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true,"internalType": "bytes32","name": "messageId","type": "bytes32"},
+                    {"indexed": true,"internalType": "uint256","name": "targetChain","type": "uint256"},
+                    {"indexed": true,"internalType": "address","name": "sender","type": "address"},
+                    {"indexed": false,"internalType": "address","name": "targetContract","type": "address"},
+                    {"indexed": false,"internalType": "bytes","name": "payload","type": "bytes"},
+                    {"indexed": false,"internalType": "uint256","name": "nonce","type": "uint256"},
+                    {"indexed": false,"internalType": "uint256","name": "gasLimit","type": "uint256"}
+                ],
+                "name": "MessageSent",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true,"internalType": "bytes32","name": "messageId","type": "bytes32"},
+                    {"indexed": true,"internalType": "uint256","name": "sourceChain","type": "uint256"},
+                    {"indexed": true,"internalType": "address","name": "sender","type": "address"},
+                    {"indexed": false,"internalType": "address","name": "targetContract","type": "address"},
+                    {"indexed": false,"internalType": "bool","name": "success","type": "bool"}
+                ],
+                "name": "MessageProcessed",
+                "type": "event"
+            }
+        ];
+
+        const TEST_TARGET_ABI = [
+            {
+                "inputs": [{"internalType": "uint256","name": "_counter","type": "uint256"}],
+                "name": "setCounter",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "incrementCounter",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256","name": "_value","type": "uint256"}],
+                "name": "storeValue",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "counter",
+                "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "storedValue",
+                "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    web3 = new Web3(window.ethereum);
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    account = accounts[0];
+                    
+                    const networkId = await web3.eth.net.getId();
+                    
+                    document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
+                    document.getElementById('networkStatus').textContent = `Chain ID: ${networkId}`;
+                    
+                    logMessage('Wallet connected successfully', 'success');
+                } else {
+                    logMessage('MetaMask not detected. Please install MetaMask.', 'error');
+                }
+            } catch (error) {
+                logMessage(`Error connecting wallet: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadContracts() {
+            try {
+                const messengerAddress = document.getElementById('messengerAddress').value;
+                const testTargetAddress = document.getElementById('testTargetAddress').value;
+                
+                if (!messengerAddress || !testTargetAddress) {
+                    logMessage('Please enter both contract addresses', 'error');
+                    return;
+                }
+                
+                messengerContract = new web3.eth.Contract(MESSENGER_ABI, messengerAddress);
+                testTargetContract = new web3.eth.Contract(TEST_TARGET_ABI, testTargetAddress);
+                
+                document.getElementById('contractAddress').textContent = `${messengerAddress.substring(0, 6)}...${messengerAddress.substring(38)}`;
+                
+                logMessage('Contracts loaded successfully', 'success');
+                await refreshState();
+            } catch (error) {
+                logMessage(`Error loading contracts: ${error.message}`, 'error');
+            }
+        }
+
+        async function refreshState() {
+            try {
+                if (!testTargetContract) {
+                    logMessage('Please load contracts first', 'error');
+                    return;
+                }
+                
+                const counter = await testTargetContract.methods.counter().call();
+                const storedValue = await testTargetContract.methods.storedValue().call();
+                
+                document.getElementById('counterValue').value = counter;
+                document.getElementById('storedValue').value = storedValue;
+                
+                logMessage('Contract state refreshed', 'info');
+            } catch (error) {
+                logMessage(`Error refreshing state: ${error.message}`, 'error');
+            }
+        }
+
+        function updateMessageForm() {
+            const messageType = document.getElementById('messageType').value;
+            const valueInput = document.getElementById('valueInput');
+            
+            if (messageType === 'incrementCounter') {
+                valueInput.style.display = 'none';
+            } else {
+                valueInput.style.display = 'block';
+            }
+        }
+
+        async function sendMessage() {
+            try {
+                if (!messengerContract || !account) {
+                    logMessage('Please connect wallet and load contracts first', 'error');
+                    return;
+                }
+                
+                const targetChain = document.getElementById('targetChain').value;
+                const messageType = document.getElementById('messageType').value;
+                const messageValue = document.getElementById('messageValue').value;
+                const gasLimit = document.getElementById('gasLimit').value;
+                const testTargetAddress = document.getElementById('testTargetAddress').value;
+                
+                let payload;
+                
+                if (messageType === 'setCounter') {
+                    payload = web3.eth.abi.encodeFunctionCall({
+                        name: 'setCounter',
+                        type: 'function',
+                        inputs: [{type: 'uint256', name: '_counter'}]
+                    }, [messageValue]);
+                } else if (messageType === 'incrementCounter') {
+                    payload = web3.eth.abi.encodeFunctionCall({
+                        name: 'incrementCounter',
+                        type: 'function',
+                        inputs: []
+                    }, []);
+                } else if (messageType === 'storeValue') {
+                    payload = web3.eth.abi.encodeFunctionCall({
+                        name: 'storeValue',
+                        type: 'function',
+                        inputs: [{type: 'uint256', name: '_value'}]
+                    }, [messageValue]);
+                }
+                
+                logMessage(`Sending ${messageType} message to chain ${targetChain}...`, 'info');
+                
+                const tx = await messengerContract.methods.sendMessage(
+                    targetChain,
+                    testTargetAddress,
+                    payload,
+                    gasLimit
+                ).send({ from: account });
+                
+                logMessage(`Message sent! Transaction: ${tx.transactionHash}`, 'success');
+                
+            } catch (error) {
+                logMessage(`Error sending message: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateRelayerProcessing() {
+            logMessage('Simulating relayer processing...', 'info');
+            logMessage('In a real implementation, relayers would:', 'info');
+            logMessage('1. Listen for MessageSent events', 'info');
+            logMessage('2. Create and sign message proofs', 'info');
+            logMessage('3. Call processMessage on target chain', 'info');
+            logMessage('4. Handle gas estimation and retry logic', 'info');
+            logMessage('Note: This demo runs on a single chain for simplicity', 'info');
+        }
+
+        async function addRelayer() {
+            try {
+                const relayerAddress = document.getElementById('relayerAddress').value;
+                if (!relayerAddress) {
+                    logMessage('Please enter relayer address', 'error');
+                    return;
+                }
+                
+                const tx = await messengerContract.methods.addRelayer(relayerAddress).send({ from: account });
+                logMessage(`Relayer added! Transaction: ${tx.transactionHash}`, 'success');
+            } catch (error) {
+                logMessage(`Error adding relayer: ${error.message}`, 'error');
+            }
+        }
+
+        async function removeRelayer() {
+            try {
+                const relayerAddress = document.getElementById('relayerAddress').value;
+                if (!relayerAddress) {
+                    logMessage('Please enter relayer address', 'error');
+                    return;
+                }
+                
+                const tx = await messengerContract.methods.removeRelayer(relayerAddress).send({ from: account });
+                logMessage(`Relayer removed! Transaction: ${tx.transactionHash}`, 'success');
+            } catch (error) {
+                logMessage(`Error removing relayer: ${error.message}`, 'error');
+            }
+        }
+
+        async function enableChain() {
+            try {
+                const chainId = document.getElementById('chainId').value;
+                if (!chainId) {
+                    logMessage('Please enter chain ID', 'error');
+                    return;
+                }
+                
+                const tx = await messengerContract.methods.enableChain(chainId).send({ from: account });
+                logMessage(`Chain ${chainId} enabled! Transaction: ${tx.transactionHash}`, 'success');
+            } catch (error) {
+                logMessage(`Error enabling chain: ${error.message}`, 'error');
+            }
+        }
+
+        async function disableChain() {
+            try {
+                const chainId = document.getElementById('chainId').value;
+                if (!chainId) {
+                    logMessage('Please enter chain ID', 'error');
+                    return;
+                }
+                
+                const tx = await messengerContract.methods.disableChain(chainId).send({ from: account });
+                logMessage(`Chain ${chainId} disabled! Transaction: ${tx.transactionHash}`, 'success');
+            } catch (error) {
+                logMessage(`Error disabling chain: ${error.message}`, 'error');
+            }
+        }
+
+        function logMessage(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+            logMessage('Log cleared', 'info');
+        }
+
+        // Initialize form
+        updateMessageForm();
+    </script>
+</body>
+</html> 

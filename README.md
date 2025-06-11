@@ -275,4 +275,96 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Note**: This is a prototype implementation for educational and testing purposes. For production use, consider additional security audits and testing. 
+**Note**: This is a prototype implementation for educational and testing purposes. For production use, consider additional security audits and testing.
+
+## Testing
+
+Run the comprehensive test suite:
+
+```bash
+npm test
+```
+
+The test suite includes 14 test cases covering:
+- Basic functionality (deployment, relayer management)
+- Message processing (valid messages, unauthorized relayers, replay attacks)
+- Security validation (nonce checking, payload size limits)
+- Utility functions (message ID generation, nonce tracking)
+
+## Web Interface
+
+A simple web interface is provided for easy testing and demonstration:
+
+### Starting the Interface
+
+1. **Start Hardhat Node:**
+   ```bash
+   npm run node
+   ```
+
+2. **Deploy Contracts:**
+   ```bash
+   npm run deploy:localhost
+   ```
+
+3. **Start Web Interface:**
+   ```bash
+   npm run interface
+   ```
+
+4. **Open Browser:**
+   Navigate to `http://localhost:3000`
+
+### Using the Interface
+
+1. **Setup:**
+   - Connect your MetaMask wallet to localhost:8545
+   - Copy the deployed contract addresses from the deployment output
+   - Paste them into the interface and click "Load Contracts"
+
+2. **Send Messages:**
+   - Choose target chain and message type
+   - Enter values as needed
+   - Click "Send Message" to create a cross-chain message
+
+3. **Admin Functions:**
+   - Add/remove relayers
+   - Enable/disable supported chains
+   - Monitor activity in the log
+
+4. **Monitor State:**
+   - View current TestTarget contract state
+   - Refresh to see updates after message processing
+
+### Interface Features
+
+- **Modern UI:** Clean, responsive design with gradient backgrounds
+- **Real-time Logging:** Activity log with color-coded messages
+- **Contract Interaction:** Direct interaction with deployed contracts
+- **Admin Controls:** Easy management of relayers and supported chains
+- **State Monitoring:** Real-time view of contract state changes
+
+**Note:** The interface works with local Hardhat network for demonstration. In production, you would connect to actual testnets or mainnets.
+
+## Deployment
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd cross-chain-messaging-prototype
+
+# Install dependencies
+npm install
+
+# Compile contracts
+npm run compile
+
+# Run tests
+npm run test
+
+# Deploy to local network
+npm run deploy
+
+# Deploy to testnet (requires environment variables)
+npm run deploy:testnet
+``` 
